@@ -86,6 +86,34 @@ class PromiseAndFutureTests: XCTestCase {
         }
     }
     
+    func testFutureCancellation() {
+        asyncTest(iterationTimeout: 2) { complete in
+            let promise = Promise<Void>()
+            let future = promise.future
+            future.error({ error in
+                if case FutureError.cancelled = error {
+                    // it is expected - do nothing
+                } else {
+                    XCTFail("Promise failed with unexpected error: \(error)")
+                }
+                complete()
+            })
+            do {
+                try future.cancel()
+            } catch {
+                XCTFail("Promise not cancelled - unexpected error: \(error)")
+            }
+            do {
+                try future.cancel()
+            } catch FutureError.alreadyCompleted {
+                // it is expected - do nothing
+            } catch {
+                XCTFail("Promise cancellation failed with unexpected error: \(error)")
+            }
+            try? promise.fulfill(with: Void())
+        }
+    }
+    
     func testFulfilledFutureMake() {
         asyncTest { complete in
             let future = Future<Void>(value: Void())
@@ -1168,11 +1196,400 @@ class PromiseAndFutureTests: XCTestCase {
         }
     }
     
+    func testBasicFutureThreadSafety() {
+        asyncTest(iterationTimeout: 10) { complete in
+            let promise = Promise<Void>()
+            let future = promise.future
+            DispatchQueue.global().async {
+                while !future.isCompleted {
+                    DispatchQueue.global().async {
+                        do {
+                            try future.await(withTimeout: 5)
+                        } catch {
+                            XCTFail("Await failed")
+                        }
+                        
+                    }
+                    sleep(1)
+                }
+            }
+            DispatchQueue.global().asyncAfter(deadline: .now() + 3, execute: {
+                try? promise.fulfill(with: Void())
+            })
+            do {
+                try future.await(withTimeout: 5)
+            } catch {
+                XCTFail("Await failed")
+            }
+            sleep(3) // wait for completion of all tasks
+            complete()
+        }
+    }
+    
+    func testDelayedFulfillWithAwaitUsingMergeOfSameType() {
+        asyncTest { complete in
+            let promise_1 = Promise<Void>()
+            let promise_2 = Promise<Void>()
+            let promise_3 = Promise<Void>()
+            let promise_4 = Promise<Void>()
+            let joinedFuture = Future(joining: promise_1.future, promise_2.future, promise_3.future, promise_4.future)
+            DispatchQueue.global().async {
+                XCTAssert(!joinedFuture.isCompleted, "Joined Future completed too early!")
+                try? promise_1.fulfill(with: ())
+                XCTAssert(!joinedFuture.isCompleted, "Joined Future completed too early!")
+                try? promise_2.fulfill(with: ())
+                XCTAssert(!joinedFuture.isCompleted, "Joined Future completed too early!")
+                try? promise_3.fulfill(with: ())
+                XCTAssert(!joinedFuture.isCompleted, "Joined Future completed too early!")
+                try? promise_4.fulfill(with: ())
+            }
+            do {
+                let value: [Void] = try joinedFuture.await()
+                XCTAssert(value.reduce(value.count == 4, { (result, value) -> Bool in
+                    return result && value == Void()
+                }), "Future value not matching: expected-\(Void()), provided-\(value)")
+            } catch {
+                XCTFail("Future failed")
+            }
+            complete()
+        }
+    }
+    
+    func testDelayedFailWithAwaitUsingMergeOfSameType() {
+        asyncTest { complete in
+            let promise_1 = Promise<Void>()
+            let promise_2 = Promise<Void>()
+            let promise_3 = Promise<Void>()
+            let promise_4 = Promise<Void>()
+            let joinedFuture = Future(joining: promise_1.future, promise_2.future, promise_3.future, promise_4.future)
+            DispatchQueue.global().async {
+                XCTAssert(!joinedFuture.isCompleted, "Joined Future completed too early!")
+                try? promise_1.fail(with: "Error_1")
+                sleep(1) // synchronization to pass assert below since joinedFuture is resolved on different thread
+                XCTAssert(joinedFuture.isCompleted, "Joined Future not completed!")
+                try? promise_2.fail(with: "Error_2")
+                try? promise_3.fail(with: "Error_3")
+                try? promise_4.fail(with: "Error_4")
+            }
+            do {
+                _ = try joinedFuture.await()
+                XCTFail("Future not failed")
+            } catch {
+                XCTAssert(error as? String == "Error_1", "Future error not matching: expected-\("Error_1"), provided-\(error)")
+            }
+            complete()
+        }
+    }
+    
+    func testInstantFulfillWithAwaitUsingMergeOfSameType() {
+        asyncTest { complete in
+            let promise_1 = Promise<Void>()
+            let promise_2 = Promise<Void>()
+            let promise_3 = Promise<Void>()
+            let promise_4 = Promise<Void>()
+            
+            try? promise_1.fulfill(with: ())
+            try? promise_2.fulfill(with: ())
+            try? promise_3.fulfill(with: ())
+            try? promise_4.fulfill(with: ())
+            let joinedFuture = Future(joining: promise_1.future, promise_2.future, promise_3.future, promise_4.future)
+            do {
+                let value: [Void] = try joinedFuture.await()
+                XCTAssert(value.reduce(value.count == 4, { (result, value) -> Bool in
+                    return result && value == Void()
+                }), "Future value not matching: expected-\(Void()), provided-\(value)")
+            } catch {
+                XCTFail("Future failed")
+            }
+            complete()
+        }
+    }
+    
+    func testInstantFailWithAwaitUsingMergeOfSameType() {
+        asyncTest { complete in
+            let promise_1 = Promise<Void>()
+            let promise_2 = Promise<Void>()
+            let promise_3 = Promise<Void>()
+            let promise_4 = Promise<Void>()
+            
+            try? promise_1.fail(with: "Error_1")
+            try? promise_2.fail(with: "Error_2")
+            try? promise_3.fail(with: "Error_3")
+            try? promise_4.fail(with: "Error_4")
+            let joinedFuture = Future(joining: promise_1.future, promise_2.future, promise_3.future, promise_4.future)
+            do {
+                _ = try joinedFuture.await()
+                XCTFail("Future not failed")
+            } catch {
+                XCTAssert(error as? String == "Error_1", "Future error not matching: expected-\("Error_1"), provided-\(error)")
+            }
+            complete()
+        }
+    }
+    
+    func testDelayedFulfillWithAwaitUsingMergeOfTwoTypes() {
+        asyncTest { complete in
+            let promise_1 = Promise<Int8>()
+            let promise_2 = Promise<Int16>()
+            let joinedFuture = Future(merging: promise_1.future, promise_2.future)
+            DispatchQueue.global().async {
+                XCTAssert(!joinedFuture.isCompleted, "Joined Future completed too early!")
+                try? promise_1.fulfill(with: 0)
+                XCTAssert(!joinedFuture.isCompleted, "Joined Future completed too early!")
+                try? promise_2.fulfill(with: 0)
+            }
+            do {
+                let value: (Int8, Int16) = try joinedFuture.await()
+                XCTAssert(value.0 == 0 && value.1 == 0, "Future value not matching: expected-(\(0),\(0)), provided-\(value)")
+            } catch {
+                XCTFail("Future failed")
+            }
+            complete()
+        }
+    }
+    
+    func testDelayedFailWithAwaitUsingMergeOfTwoTypes() {
+        asyncTest { complete in
+            let promise_1 = Promise<Int8>()
+            let promise_2 = Promise<Int16>()
+            let joinedFuture = Future(merging: promise_1.future, promise_2.future)
+            DispatchQueue.global().async {
+                XCTAssert(!joinedFuture.isCompleted, "Joined Future completed too early!")
+                try? promise_1.fail(with: "Error_1")
+                sleep(1) // synchronization to pass assert below since joinedFuture is resolved on different thread
+                XCTAssert(joinedFuture.isCompleted, "Joined Future not completed!")
+                try? promise_2.fail(with: "Error_2")
+            }
+            do {
+                _ = try joinedFuture.await()
+                XCTFail("Future not failed")
+            } catch {
+                XCTAssert(error as? String == "Error_1", "Future error not matching: expected-\("Error_1"), provided-\(error)")
+            }
+            complete()
+        }
+    }
+    
+    func testInstantFulfillWithAwaitUsingMergeOfTwoTypes() {
+        asyncTest { complete in
+            let promise_1 = Promise<Int8>()
+            let promise_2 = Promise<Int16>()
+            try? promise_1.fulfill(with: 0)
+            try? promise_2.fulfill(with: 0)
+            let joinedFuture = Future(merging: promise_1.future, promise_2.future)
+            do {
+                let value: (Int8, Int16) = try joinedFuture.await()
+                XCTAssert(value.0 == 0 && value.1 == 0, "Future value not matching: expected-(\(0),\(0)), provided-\(value)")
+            } catch {
+                XCTFail("Future failed")
+            }
+            complete()
+        }
+    }
+    
+    func testInstantFailWithAwaitUsingMergeOfTwoTypes() {
+        asyncTest { complete in
+            let promise_1 = Promise<Int8>()
+            let promise_2 = Promise<Int16>()
+            try? promise_1.fail(with: "Error_1")
+            try? promise_2.fail(with: "Error_2")
+            let joinedFuture = Future(merging: promise_1.future, promise_2.future)
+            do {
+                _ = try joinedFuture.await()
+                XCTFail("Future not failed")
+            } catch {
+                XCTAssert(error as? String == "Error_1", "Future error not matching: expected-\("Error_1"), provided-\(error)")
+            }
+            complete()
+        }
+    }
+    
+    func testDelayedFulfillWithAwaitUsingMergeOfThreeTypes() {
+        asyncTest { complete in
+            let promise_1 = Promise<Int8>()
+            let promise_2 = Promise<Int16>()
+            let promise_3 = Promise<Int32>()
+            let joinedFuture = Future(merging: promise_1.future, promise_2.future, promise_3.future)
+            DispatchQueue.global().async {
+                XCTAssert(!joinedFuture.isCompleted, "Joined Future completed too early!")
+                try? promise_1.fulfill(with: 0)
+                XCTAssert(!joinedFuture.isCompleted, "Joined Future completed too early!")
+                try? promise_2.fulfill(with: 0)
+                XCTAssert(!joinedFuture.isCompleted, "Joined Future completed too early!")
+                try? promise_3.fulfill(with: 0)
+            }
+            do {
+                let value: (Int8, Int16, Int32) = try joinedFuture.await()
+                XCTAssert(value.0 == 0 && value.1 == 0 && value.2 == 0, "Future value not matching: expected-(\(0),\(0),\(0)), provided-\(value)")
+            } catch {
+                XCTFail("Future failed")
+            }
+            complete()
+        }
+    }
+    
+    func testDelayedFailWithAwaitUsingMergeOfThreeTypes() {
+        asyncTest { complete in
+            let promise_1 = Promise<Int8>()
+            let promise_2 = Promise<Int16>()
+            let promise_3 = Promise<Int32>()
+            let joinedFuture = Future(merging: promise_1.future, promise_2.future, promise_3.future)
+            DispatchQueue.global().async {
+                XCTAssert(!joinedFuture.isCompleted, "Joined Future completed too early!")
+                try? promise_1.fail(with: "Error_1")
+                sleep(1) // synchronization to pass assert below since joinedFuture is resolved on different thread
+                XCTAssert(joinedFuture.isCompleted, "Joined Future not completed!")
+                try? promise_2.fail(with: "Error_2")
+                try? promise_3.fail(with: "Error_3")
+            }
+            do {
+                _ = try joinedFuture.await()
+                XCTFail("Future not failed")
+            } catch {
+                XCTAssert(error as? String == "Error_1", "Future error not matching: expected-\("Error_1"), provided-\(error)")
+            }
+            complete()
+        }
+    }
+    
+    func testInstantFulfillWithAwaitUsingMergeOfThreeTypes() {
+        asyncTest { complete in
+            let promise_1 = Promise<Int8>()
+            let promise_2 = Promise<Int16>()
+            let promise_3 = Promise<Int32>()
+            try? promise_1.fulfill(with: 0)
+            try? promise_2.fulfill(with: 0)
+            try? promise_3.fulfill(with: 0)
+            let joinedFuture = Future(merging: promise_1.future, promise_2.future, promise_3.future)
+            do {
+                let value: (Int8, Int16, Int32) = try joinedFuture.await()
+                XCTAssert(value.0 == 0 && value.1 == 0 && value.2 == 0, "Future value not matching: expected-(\(0),\(0),\(0)), provided-\(value)")
+            } catch {
+                XCTFail("Future failed")
+            }
+            complete()
+        }
+    }
+    
+    func testInstantFailWithAwaitUsingMergeOfThreeTypes() {
+        asyncTest { complete in
+            let promise_1 = Promise<Int8>()
+            let promise_2 = Promise<Int16>()
+            let promise_3 = Promise<Int32>()
+            try? promise_1.fail(with: "Error_1")
+            try? promise_2.fail(with: "Error_2")
+            try? promise_3.fail(with: "Error_3")
+            let joinedFuture = Future(merging: promise_1.future, promise_2.future, promise_3.future)
+            do {
+                _ = try joinedFuture.await()
+                XCTFail("Future not failed")
+            } catch {
+                XCTAssert(error as? String == "Error_1", "Future error not matching: expected-\("Error_1"), provided-\(error)")
+            }
+            complete()
+        }
+    }
+    
+    func testDelayedFulfillWithAwaitUsingMergeOfFourTypes() {
+        asyncTest { complete in
+            let promise_1 = Promise<Int8>()
+            let promise_2 = Promise<Int16>()
+            let promise_3 = Promise<Int32>()
+            let promise_4 = Promise<Int64>()
+            let joinedFuture = Future(merging: promise_1.future, promise_2.future, promise_3.future, promise_4.future)
+            DispatchQueue.global().async {
+                XCTAssert(!joinedFuture.isCompleted, "Joined Future completed too early!")
+                try? promise_1.fulfill(with: 0)
+                XCTAssert(!joinedFuture.isCompleted, "Joined Future completed too early!")
+                try? promise_2.fulfill(with: 0)
+                XCTAssert(!joinedFuture.isCompleted, "Joined Future completed too early!")
+                try? promise_3.fulfill(with: 0)
+                XCTAssert(!joinedFuture.isCompleted, "Joined Future completed too early!")
+                try? promise_4.fulfill(with: 0)
+            }
+            do {
+                let value: (Int8, Int16, Int32, Int64) = try joinedFuture.await()
+                XCTAssert(value.0 == 0 && value.1 == 0 && value.2 == 0 && value.3 == 0, "Future value not matching: expected-(\(0),\(0),\(0),\(0)), provided-\(value)")
+            } catch {
+                XCTFail("Future failed")
+            }
+            complete()
+        }
+    }
+    
+    func testDelayedFailWithAwaitUsingMergeOfFourTypes() {
+        asyncTest { complete in
+            let promise_1 = Promise<Int8>()
+            let promise_2 = Promise<Int16>()
+            let promise_3 = Promise<Int32>()
+            let promise_4 = Promise<Int64>()
+            let joinedFuture = Future(merging: promise_1.future, promise_2.future, promise_3.future, promise_4.future)
+            DispatchQueue.global().async {
+                XCTAssert(!joinedFuture.isCompleted, "Joined Future completed too early!")
+                try? promise_1.fail(with: "Error_1")
+                sleep(1) // synchronization to pass assert below since joinedFuture is resolved on different thread
+                XCTAssert(joinedFuture.isCompleted, "Joined Future not completed!")
+                try? promise_2.fail(with: "Error_2")
+                try? promise_3.fail(with: "Error_3")
+                try? promise_4.fail(with: "Error_4")
+            }
+            do {
+                _ = try joinedFuture.await()
+                XCTFail("Future not failed")
+            } catch {
+                XCTAssert(error as? String == "Error_1", "Future error not matching: expected-\("Error_1"), provided-\(error)")
+            }
+            complete()
+        }
+    }
+    
+    func testInstantFulfillWithAwaitUsingMergeOfFourTypes() {
+        asyncTest { complete in
+            let promise_1 = Promise<Int8>()
+            let promise_2 = Promise<Int16>()
+            let promise_3 = Promise<Int32>()
+            let promise_4 = Promise<Int64>()
+            try? promise_1.fulfill(with: 0)
+            try? promise_2.fulfill(with: 0)
+            try? promise_3.fulfill(with: 0)
+            try? promise_4.fulfill(with: 0)
+            let joinedFuture = Future(merging: promise_1.future, promise_2.future, promise_3.future, promise_4.future)
+            do {
+                let value: (Int8, Int16, Int32, Int64) = try joinedFuture.await()
+                XCTAssert(value.0 == 0 && value.1 == 0 && value.2 == 0 && value.3 == 0, "Future value not matching: expected-(\(0),\(0),\(0),\(0)), provided-\(value)")
+            } catch {
+                XCTFail("Future failed")
+            }
+            complete()
+        }
+    }
+    
+    func testInstantFailWithAwaitUsingMergeOfFourTypes() {
+        asyncTest { complete in
+            let promise_1 = Promise<Int8>()
+            let promise_2 = Promise<Int16>()
+            let promise_3 = Promise<Int32>()
+            let promise_4 = Promise<Int64>()
+            try? promise_1.fail(with: "Error_1")
+            try? promise_2.fail(with: "Error_2")
+            try? promise_3.fail(with: "Error_3")
+            try? promise_4.fail(with: "Error_4")
+            let joinedFuture = Future(merging: promise_1.future, promise_2.future, promise_3.future, promise_4.future)
+            do {
+                _ = try joinedFuture.await()
+                XCTFail("Future not failed")
+            } catch {
+                XCTAssert(error as? String == "Error_1", "Future error not matching: expected-\("Error_1"), provided-\(error)")
+            }
+            complete()
+        }
+    }
     
     static var allTests = [
         ("testFulfillStateChanges", testFulfillStateChanges),
         ("testFailStateChanges", testFailStateChanges),
         ("testFutureTimeout", testFutureTimeout),
+        ("testFutureCancellation", testFutureCancellation),
         ("testFailedFutureMake", testFailedFutureMake),
         ("testFulfillFutureWithClosureTask", testFulfillFutureWithClosureTask),
         ("testFailFutureWithClosureTask", testFailFutureWithClosureTask),
@@ -1236,5 +1653,22 @@ class PromiseAndFutureTests: XCTestCase {
         ("testInstantFailWithErrorCallbackUsingFailingRecovery", testInstantFailWithErrorCallbackUsingFailingRecovery),
         ("testInstantFailWithResultCallbackUsingRecovery", testInstantFailWithResultCallbackUsingRecovery),
         ("testInstantFailWithResultCallbackUsingFailingRecovery", testInstantFailWithResultCallbackUsingFailingRecovery),
+        ("testBasicFutureThreadSafety", testBasicFutureThreadSafety),
+        ("testDelayedFulfillWithAwaitUsingMergeOfSameType", testDelayedFulfillWithAwaitUsingMergeOfSameType),
+        ("testDelayedFailWithAwaitUsingMergeOfSameType", testDelayedFailWithAwaitUsingMergeOfSameType),
+        ("testInstantFulfillWithAwaitUsingMergeOfSameType", testInstantFulfillWithAwaitUsingMergeOfSameType),
+        ("testInstantFailWithAwaitUsingMergeOfSameType", testInstantFailWithAwaitUsingMergeOfSameType),
+        ("testDelayedFulfillWithAwaitUsingMergeOfTwoTypes", testDelayedFulfillWithAwaitUsingMergeOfTwoTypes),
+        ("testDelayedFailWithAwaitUsingMergeOfTwoTypes", testDelayedFailWithAwaitUsingMergeOfTwoTypes),
+        ("testInstantFulfillWithAwaitUsingMergeOfTwoTypes", testInstantFulfillWithAwaitUsingMergeOfTwoTypes),
+        ("testInstantFailWithAwaitUsingMergeOfTwoTypes", testInstantFailWithAwaitUsingMergeOfTwoTypes),
+        ("testDelayedFulfillWithAwaitUsingMergeOfThreeTypes", testDelayedFulfillWithAwaitUsingMergeOfThreeTypes),
+        ("testDelayedFailWithAwaitUsingMergeOfThreeTypes", testDelayedFailWithAwaitUsingMergeOfThreeTypes),
+        ("testInstantFulfillWithAwaitUsingMergeOfThreeTypes", testInstantFulfillWithAwaitUsingMergeOfThreeTypes),
+        ("testInstantFailWithAwaitUsingMergeOfThreeTypes", testInstantFailWithAwaitUsingMergeOfThreeTypes),
+        ("testDelayedFulfillWithAwaitUsingMergeOfFourTypes", testDelayedFulfillWithAwaitUsingMergeOfFourTypes),
+        ("testDelayedFailWithAwaitUsingMergeOfFourTypes", testDelayedFailWithAwaitUsingMergeOfFourTypes),
+        ("testInstantFulfillWithAwaitUsingMergeOfFourTypes", testInstantFulfillWithAwaitUsingMergeOfFourTypes),
+        ("testInstantFailWithAwaitUsingMergeOfFourTypes", testInstantFailWithAwaitUsingMergeOfFourTypes),
         ]
 }

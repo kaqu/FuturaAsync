@@ -3,10 +3,10 @@ import XCTest
 
 extension String : Error {}
 
-let testIterations: UInt = 10
+let testIterations: UInt = 3
 
 extension XCTestCase {
-    func asyncTest(iterationTimeout: TimeInterval = 1, iterations: UInt = testIterations, testBody: @escaping (@escaping ()->())->()) {
+    func asyncTest(iterationTimeout: TimeInterval = 2, iterations: UInt = testIterations, testBody: @escaping (@escaping ()->())->()) {
         let testSemaphore = DispatchSemaphore(value: 1)
         let testQueue = DispatchQueue(label: "AsyncTestQueue")
         (0...iterations).forEach { iteration in
@@ -23,8 +23,6 @@ extension XCTestCase {
 class FuturaAsyncTests: XCTestCase {
     
     // TODO: tests - Future/Promise
-    // - async/await
-    // - multi await on same future
     // - memory management - check if releasing memory properly
     // - race condition - mulithreaded read/write
 

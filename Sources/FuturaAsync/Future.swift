@@ -11,6 +11,7 @@ import Foundation
 /// Errors that can be produced by future itself
 public enum FutureError : Swift.Error {
     case timeout
+    case cancelled
     case incomplete
     case alreadyCompleted
     case recoveryFailedWith(Error)
@@ -173,6 +174,16 @@ public extension Future {
             throw error
         }
     }
+    
+    /// Completes future with FutureError.cancelled
+    func cancel() throws {
+        lock.lock()
+        defer { self.lock.unlock(withCondition: FutureLockConst.completed.rawValue) }
+        guard !state.isCompleted else {
+            throw FutureError.alreadyCompleted
+        }
+        state = .error(FutureError.cancelled)
+    }
 }
 
 public extension Future {
@@ -278,5 +289,52 @@ fileprivate extension Future {
         valueHandlers = []
         errorHandlers = []
         recoveryHandler = nil
+    }
+}
+
+public extension Future {
+    
+    /// Merges given Futures
+    convenience init<T>(joining futures: Future<T>...) where Value == Array<T> {
+        self.init(using: Worker.default) { (valueCompletion, errorCompletion) in
+            do {
+                try valueCompletion(try futures.map { try $0.await() })
+            } catch {
+                try? errorCompletion(error)
+            }
+        }
+    }
+    
+    /// Merges given Futures
+    convenience init<T, U>(merging first: Future<T>, _ second: Future<U>) where Value == (T,U) {
+        self.init(using: Worker.default) { (valueCompletion, errorCompletion) in
+            do {
+                try valueCompletion((first.await(), second.await()))
+            } catch {
+                try? errorCompletion(error)
+            }
+        }
+    }
+    
+    /// Merges given Futures
+    convenience init<T, U, V>(merging first: Future<T>, _ second: Future<U>, _ third: Future<V>) where Value == (T,U,V) {
+        self.init(using: Worker.default) { (valueCompletion, errorCompletion) in
+            do {
+                try valueCompletion((first.await(), second.await(), third.await()))
+            } catch {
+                try? errorCompletion(error)
+            }
+        }
+    }
+    
+    /// Merges given Futures
+    convenience init<T, U, V, X>(merging first: Future<T>, _ second: Future<U>, _ third: Future<V>, _ fourth: Future<X>) where Value == (T,U,V,X) {
+        self.init(using: Worker.default) { (valueCompletion, errorCompletion) in
+            do {
+                try valueCompletion((first.await(), second.await(), third.await(), fourth.await()))
+            } catch {
+                try? errorCompletion(error)
+            }
+        }
     }
 }
