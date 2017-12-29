@@ -1224,5 +1224,17 @@ class PromiseAndFutureTests: XCTestCase {
         ("testInstantFulfillWithResultCallbackUsingMap", testInstantFulfillWithResultCallbackUsingMap),
         ("testInstantFailWithResultCallbackUsingMap", testInstantFailWithResultCallbackUsingMap),
         ("testInstantFailWithResultCallbackUsingFailingMap", testInstantFailWithResultCallbackUsingFailingMap),
+        ("testDelayedFaillWithAwaitUsingRecovery", testDelayedFaillWithAwaitUsingRecovery),
+        ("testDelayedFailWithAwaitUsingFailingRecovery", testDelayedFailWithAwaitUsingFailingRecovery),
+        ("testDelayedFailWithValueCallbackUsingRecovery", testDelayedFailWithValueCallbackUsingRecovery),
+        ("testDelayedFailWithErrorCallbackUsingFailingRecovery", testDelayedFailWithErrorCallbackUsingFailingRecovery),
+        ("testDelayedFailWithResultCallbackUsingRecovery", testDelayedFailWithResultCallbackUsingRecovery),
+        ("testDelayedFailWithResultCallbackUsingFailingRecovery", testDelayedFailWithResultCallbackUsingFailingRecovery),
+        ("testInstantFailWithAwaitUsingRecovery", testInstantFailWithAwaitUsingRecovery),
+        ("testInstantFailWithAwaitUsingFailingRecovery", testInstantFailWithAwaitUsingFailingRecovery),
+        ("testInstantFailWithValueCallbackUsingRecovery", testInstantFailWithValueCallbackUsingRecovery),
+        ("testInstantFailWithErrorCallbackUsingFailingRecovery", testInstantFailWithErrorCallbackUsingFailingRecovery),
+        ("testInstantFailWithResultCallbackUsingRecovery", testInstantFailWithResultCallbackUsingRecovery),
+        ("testInstantFailWithResultCallbackUsingFailingRecovery", testInstantFailWithResultCallbackUsingFailingRecovery),
         ]
 }
