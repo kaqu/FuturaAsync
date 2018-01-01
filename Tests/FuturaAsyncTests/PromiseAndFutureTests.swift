@@ -144,9 +144,7 @@ class PromiseAndFutureTests: XCTestCase {
     
     func testFulfillFutureWithClosureTask() {
         asyncTest { complete in
-            let future = Future<Void>() { fulfill, _ in
-                try! fulfill(Void())
-            }
+            let future = Future<Void>() { Void() }
             do {
                 let value: Void = try future.await()
                 XCTAssert(value == Void(), "Future value not matching: expected-\(Void()), provided-\(value)")
@@ -159,9 +157,7 @@ class PromiseAndFutureTests: XCTestCase {
     
     func testFailFutureWithClosureTask() {
         asyncTest { complete in
-            let future = Future<Void>() { _, fail in
-                try! fail("Error")
-            }
+            let future = Future<Void>() { throw "Error" }
             do {
                 _ = try future.await()
                 XCTFail("Future not failed")
