@@ -1,27 +1,9 @@
-//
-//  AsyncWorker.swift
-//  FuturaCore
-//
-//  Created by Kacper Kaliński on 30/11/2017.
-//  Copyright © 2017 kaqu. All rights reserved.
-//
-
 import Foundation
 
-public protocol Work {
-    func `do`()
-}
-
 public protocol AsyncWorker {
-    func `do`(_ work: @escaping ()->())
-}
-
-public extension AsyncWorker {
-    func `do`(_ work: Work) { self.do(work.do) }
-}
-
-public func async(using worker: AsyncWorker = Worker.`default`, _ task: @escaping ()->()) {
-    worker.do(task)
+    
+    @discardableResult
+    func schedule(_ work: @escaping () throws ->()) -> Catchable
 }
 
 public enum Worker {
@@ -37,10 +19,17 @@ public enum Worker {
 
 extension Worker : AsyncWorker {
     
-    public func `do`(_ work: @escaping ()->()) {
+    @discardableResult
+    public func schedule(_ voidWork: @escaping () throws ->()) -> Catchable {
+        let catchable = Catchable()
         queue.async {
-            work()
+            do {
+                try voidWork()
+            } catch {
+                catchable.handler?(error)
+            }
         }
+        return catchable
     }
 }
 

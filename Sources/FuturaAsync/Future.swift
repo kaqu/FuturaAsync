@@ -1,11 +1,3 @@
-//
-//  Future.swift
-//  FuturaCore
-//
-//  Created by Kacper Kaliński on 01/12/2017.
-//  Copyright © 2017 kaqu. All rights reserved.
-//
-
 import Foundation
 
 /// Errors that can be produced by future itself
@@ -63,7 +55,7 @@ public final class Future<Value> {
     public init(using worker: AsyncWorker = Worker.default, with task: @escaping ()throws->(Value)) {
         state = .waiting
         lock = NSConditionLock(condition: FutureLockConst.waiting.rawValue)
-        worker.do {
+        worker.schedule {
             do {
                 try self.complete(with:task())
             } catch {
@@ -195,7 +187,7 @@ public extension Future {
         defer { self.lock.unlock() }
         do {
             let result = try state.result()
-            worker.do { handler(result) }
+            worker.schedule { handler(result) }
         } catch {
             resultHandlers.append((worker, handler))
         }
@@ -208,7 +200,7 @@ public extension Future {
         lock.lock()
         defer { self.lock.unlock() }
         do {
-            if case let .value(value) = try state.result() { worker.do { handler(value) } }
+            if case let .value(value) = try state.result() { worker.schedule { handler(value) } }
         } catch {
             valueHandlers.append((worker, handler))
         }
@@ -221,7 +213,7 @@ public extension Future {
         lock.lock()
         defer { self.lock.unlock() }
         do {
-            if case let .error(error) = try state.result() { worker.do { handler(error) } }
+            if case let .error(error) = try state.result() { worker.schedule { handler(error) } }
         } catch {
             errorHandlers.append((worker, handler))
         }
@@ -278,11 +270,11 @@ fileprivate extension Future {
         let result = try! state.result() // must be completed here
         switch result {
         case let .value(value):
-            valueHandlers.forEach { worker, handler in worker.do { handler(value) } }
+            valueHandlers.forEach { worker, handler in worker.schedule { handler(value) } }
         case let .error(error):
-            errorHandlers.forEach { worker, handler in worker.do { handler(error) } }
+            errorHandlers.forEach { worker, handler in worker.schedule { handler(error) } }
         }
-        resultHandlers.forEach { worker, handler in worker.do { handler(result) } }
+        resultHandlers.forEach { worker, handler in worker.schedule { handler(result) } }
         
         // release memory - prevents retain cycles
         resultHandlers = []

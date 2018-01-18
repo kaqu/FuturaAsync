@@ -20,24 +20,7 @@ class WorkerTests: XCTestCase {
     
     func testWorkerClosurePerform() {
         asyncTest { complete in
-            Worker.default.do {
-                complete()
-            }
-        }
-    }
-    
-    func testWorkerWorkPerform() {
-        asyncTest { complete in
-            let work = TestWork() {
-                complete()
-            }
-            Worker.default.do(work)
-        }
-    }
-    
-    func testAsyncBlockPerform() {
-        asyncTest { complete in
-            async {
+            Worker.default.schedule {
                 complete()
             }
         }
@@ -46,19 +29,5 @@ class WorkerTests: XCTestCase {
     static var allTests = [
         ("testWokrerQueues", testWokrerQueues),
         ("testWorkerClosurePerform", testWorkerClosurePerform),
-        ("testWorkerWorkPerform", testWorkerWorkPerform),
-        ("testAsyncBlockPerform", testAsyncBlockPerform),
         ]
-}
-
-class TestWork : Work {
-    
-    let closure: ()->()
-    func `do`() {
-        closure()
-    }
-    
-    init(closure: @escaping ()->()) {
-        self.closure = closure
-    }
 }

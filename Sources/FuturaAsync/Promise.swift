@@ -1,11 +1,3 @@
-//
-//  Promise.swift
-//  FuturaCore
-//
-//  Created by Kacper Kaliński on 01/11/2017.
-//  Copyright © 2017 kaqu. All rights reserved.
-//
-
 import Foundation
 
 public final class Promise <Value> {
