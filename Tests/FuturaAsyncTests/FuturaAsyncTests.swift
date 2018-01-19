@@ -31,24 +31,24 @@ class FuturaAsyncTests: XCTestCase {
         }
     }
     
-    func testAsyncBlockCatch() {
+    func testAsyncBlockCatchable() {
         asyncTest { complete in
             let errorToThrow = NSError(domain: "TEST", code: -1, userInfo: nil)
             async {
                 throw errorToThrow
                 }
-                .catch { error in
-                    defer { complete() }
-                    guard error as NSError == errorToThrow else {
-                        XCTFail("Not failed with proper error")
-                        return
-                    }
+            .catch { error in
+                defer { complete() }
+                guard error as NSError == errorToThrow else {
+                    XCTFail("Not failed with proper error")
+                    return
+                }
             }
         }
     }
-    
+
     static var allTests = [
         ("testAsyncBlockPerform", testAsyncBlockPerform),
-        ("testAsyncBlockCatch", testAsyncBlockCatch),
+        ("testAsyncBlockCatchable", testAsyncBlockCatchable),
         ]
 }

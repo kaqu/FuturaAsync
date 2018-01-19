@@ -4,6 +4,9 @@ public protocol AsyncWorker {
     
     @discardableResult
     func schedule(_ work: @escaping () throws ->()) -> Catchable
+    
+    @discardableResult
+    func schedule(after: TimeInterval, _ work: @escaping () throws ->()) -> Catchable
 }
 
 public enum Worker {
@@ -20,13 +23,28 @@ public enum Worker {
 extension Worker : AsyncWorker {
     
     @discardableResult
-    public func schedule(_ voidWork: @escaping () throws ->()) -> Catchable {
+    public func schedule(_ work: @escaping () throws ->()) -> Catchable {
         let catchable = Catchable()
         queue.async {
             do {
-                try voidWork()
+                try work()
+                catchable.complete(with: nil)
             } catch {
-                catchable.handler?(error)
+                catchable.complete(with: error)
+            }
+        }
+        return catchable
+    }
+    
+    @discardableResult
+    public func schedule(after: TimeInterval, _ work: @escaping () throws ->()) -> Catchable {
+        let catchable = Catchable()
+        queue.asyncAfter(deadline: .now() + after) {
+            do {
+                try work()
+                catchable.complete(with: nil)
+            } catch {
+                catchable.complete(with: error)
             }
         }
         return catchable
