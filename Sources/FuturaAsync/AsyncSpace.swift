@@ -12,7 +12,7 @@ public final class AsyncSpace<Property> {
         defer { lock.unlock() }
         guard !lock.tryLock(whenCondition: AsyncSpaceLock.vanished) else { throw AsyncSpaceError.vanished }
         lock.lock()
-        portals.filter { $0 !== portal} .forEach {  try? $0.assignBufferValue(property) }
+        portals.filter { $0 !== portal} .forEach { try? $0.assignBufferValue(property) }
     }
     
     internal func open(portal: Portal<Property>) throws {

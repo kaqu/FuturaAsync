@@ -18,7 +18,7 @@ public final class Portal<Payload> {
     internal func assignBufferValue(_ payload: Payload) throws {
         defer { lock.unlock(withCondition: PortalLock.ready) }
         lock.lock()
-//        guard nil != space else { throw PortalError.portalClosed }
+        guard nil != space else { throw PortalError.portalClosed }
         payloadBuffer.insert(payload, at: 0)
     }
 

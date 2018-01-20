@@ -14,6 +14,10 @@ class PortalTests: XCTestCase {
                 try portal.closeAssociatedSpace()
                 space.close(portal: portal)
                 do {
+                    _ = try portal.assignBufferValue("")
+                    XCTFail("Expected to throw")
+                } catch { /* expected */ }
+                do {
                     _ = try space.broadcast(property: "", from: portal)
                     XCTFail("Expected to throw")
                 } catch { /* expected */ }
