@@ -10,11 +10,9 @@ extension XCTestCase {
     func asyncTest(iterationTimeout: TimeInterval = 2, iterations: UInt = testIterations, testBody: @escaping (@escaping ()->())->()) {
         
         let testQueue = DispatchQueue(label: "AsyncTestQueue")
-        (0...iterations).forEach { iteration in
+        (0..<iterations).forEach { iteration in
             testQueue.async {
-                testBody() {
-                    testSemaphore.signal()
-                }
+                testBody() { testSemaphore.signal() }
             }
             XCTAssert(.success == testSemaphore.wait(timeout: .now() + iterationTimeout), "Not in time - possible deadlock or fail - iteration: \(iteration)")
         }
