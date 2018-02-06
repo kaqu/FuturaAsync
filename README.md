@@ -1,6 +1,14 @@
 # FuturaAsync
 
-[![Build Status](https://travis-ci.org/kaqu/FuturaAsync.svg?branch=master)](https://travis-ci.org/kaqu/FuturaAsync)
+<p align="center">
+    <img src="https://travis-ci.org/kaqu/FuturaAsync.svg?branch=master" />
+    <img src="https://img.shields.io/badge/Swift-4.1-brightgreen.svg" />
+    <a href="https://twitter.com/kaqukal">
+        <img src="https://img.shields.io/badge/contact-@kaqukal-blue.svg?style=flat" alt="Twitter: @kaqukal" />
+    </a>
+</p>
+
+---
 
 Part of Futura tools Project.
 
