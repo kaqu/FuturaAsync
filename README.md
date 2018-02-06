@@ -1,5 +1,7 @@
 # FuturaAsync
 
+[![Build Status](https://travis-ci.org/kaqu/FuturaAsync.svg?branch=master)](https://travis-ci.org/kaqu/FuturaAsync)
+
 Part of Futura tools Project.
 
 Provides promise implementation for iOS, macOS and Linux.
