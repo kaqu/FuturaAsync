@@ -1,9 +1,10 @@
 language: swift
 osx_image: xcode9.2
 before_script:
-    - swift package update
+  - swift package update
+  - swift package generate-xcodeproj
 script:
-  - swift test -Xswiftc -profile-coverage-mapping
+  - xcodebuild test -scheme FuturaAsync-Package -enableCodeCoverage YES
 after_success:
   - bash <(curl -s https://codecov.io/bash)
 
