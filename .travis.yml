@@ -1,11 +1,14 @@
 language: swift
 osx_image: xcode9.2
 before_install: rvm use $RVM_RUBY_VERSION
-install: bundle install --without=documentation --path ../travis_bundle_dir
+install: 
+    - bundle install --without=documentation --path ../travis_bundle_dir
+    - brew uninstall xctool; brew install xctool --HEAD;
 before_script:
     - swift package update
     - swift package generate-xcodeproj
 script:
   - swift test
+  - xctool test -project FuturaAsync.xcodeproj -scheme FuturaAsync-Package
 after_success: slather
 
