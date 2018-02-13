@@ -6,6 +6,7 @@
     <a href="https://twitter.com/kaqukal">
         <img src="https://img.shields.io/badge/contact-@kaqukal-blue.svg?style=flat" alt="Twitter: @kaqukal" />
     </a>
+    <a href='https://coveralls.io/github/kaqu/FuturaAsync?branch=master'><img src='https://coveralls.io/repos/github/kaqu/FuturaAsync/badge.svg?branch=master' alt='Coverage Status' /></a>
 </p>
 
 
