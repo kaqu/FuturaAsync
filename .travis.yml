@@ -1,7 +1,7 @@
 language: swift
 osx_image: xcode9.2
 script:
-    - gem install coveralls
-    - Coveralls.wear!
+    - gem install coveralls-gcov
+    - coveralls-gcov send --repo-token $coveralls_token
     - swift package update
     - swift test
