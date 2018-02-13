@@ -44,12 +44,12 @@ class WorkerTests: XCTestCase {
     
     func testWorkerClosurePerformWithCatchableMemoryReleaseWithoutError() {
         asyncTest(iterationTimeout: 6) { complete in
-            let lock = NSLock()
+            let lock = NSConditionLock(condition: 1)
             lock.lock()
-            weak var catchable: Catchable? = Worker.default.schedule { sleep(2) ; lock.unlock()  }
+            weak var catchable: Catchable? = Worker.default.schedule { sleep(2) ; lock.unlock(withCondition: 0) }
             sleep(1)
             XCTAssert(catchable != nil, "Released to early")
-            lock.lock()
+            lock.lock(whenCondition: 0)
             sleep(1) // wait for async release
             XCTAssert(catchable == nil, "Not released at all")
             complete()
@@ -57,15 +57,15 @@ class WorkerTests: XCTestCase {
     }
     
     func testWorkerClosurePerformWithCatchableMemoryReleaseOnError() {
-        asyncTest(iterationTimeout: 6) { complete in
-            let lock = NSLock()
+        asyncTest(iterationTimeout: 7) { complete in
+            let lock = NSConditionLock(condition: 1)
             lock.lock()
             weak var catchable: Catchable? = Worker.default.schedule { sleep(2) ; throw NSError() }
+            catchable?.catch { _ in lock.unlock(withCondition: 0) }
             sleep(1)
             XCTAssert(catchable != nil, "Released to early")
-            catchable?.catch { _ in lock.unlock() }
-            lock.lock()
-            sleep(1) // wait for async release
+            lock.lock(whenCondition: 0)
+            sleep(2) // wait for release
             XCTAssert(catchable == nil, "Not released at all")
             complete()
         }
@@ -97,12 +97,12 @@ class WorkerTests: XCTestCase {
     
     func testDelayedWorkerClosurePerformWithCatchableMemoryReleaseWithoutError() {
         asyncTest(iterationTimeout: 7) { complete in
-            let lock = NSLock()
+            let lock = NSConditionLock(condition: 1)
             lock.lock()
-            weak var catchable: Catchable? = Worker.default.schedule(after: 1) { sleep(2) ; lock.unlock()  }
+            weak var catchable: Catchable? = Worker.default.schedule(after: 1) { sleep(2) ; lock.unlock(withCondition: 0) }
             sleep(1)
             XCTAssert(catchable != nil, "Released to early")
-            lock.lock()
+            lock.lock(whenCondition: 0)
             sleep(1) // wait for async release
             XCTAssert(catchable == nil, "Not released at all")
             complete()
@@ -111,13 +111,14 @@ class WorkerTests: XCTestCase {
     
     func testDelayedWorkerClosurePerformWithCatchableMemoryReleaseOnError() {
         asyncTest(iterationTimeout: 7) { complete in
-            let lock = NSLock()
+            let lock = NSConditionLock(condition: 1)
+            defer { lock.unlock() }
             lock.lock()
             weak var catchable: Catchable? = Worker.default.schedule(after: 1) { sleep(2) ; throw NSError() }
             sleep(1)
             XCTAssert(catchable != nil, "Released to early")
-            catchable?.catch { _ in lock.unlock() }
-            lock.lock()
+            catchable?.catch { _ in lock.unlock(withCondition: 0) }
+            lock.lock(whenCondition: 0)
             sleep(1) // wait for async release
             XCTAssert(catchable == nil, "Not released at all")
             complete()
