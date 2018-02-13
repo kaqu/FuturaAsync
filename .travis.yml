@@ -9,6 +9,6 @@ before_script:
     - swift package generate-xcodeproj
 script:
   - swift test
-  - xctool test -project FuturaAsync.xcodeproj -scheme FuturaAsync-Package
+  - xctool -project FuturaAsync.xcodeproj -scheme FuturaAsync-Package test
 after_success: slather
 
