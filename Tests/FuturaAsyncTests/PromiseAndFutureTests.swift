@@ -122,7 +122,7 @@ class PromiseAndFutureTests: XCTestCase {
                 let value: Void = try future.await()
                 XCTAssert(value == Void(), "Future value not matching: expected-\(Void()), provided-\(value)")
             } catch {
-                XCTFail("Future failed")
+                XCTFail("Future failed with error - \(error)")
             }
             complete()
         }
@@ -149,7 +149,7 @@ class PromiseAndFutureTests: XCTestCase {
                 let value: Void = try future.await()
                 XCTAssert(value == Void(), "Future value not matching: expected-\(Void()), provided-\(value)")
             } catch {
-                XCTFail("Future failed")
+                XCTFail("Future failed with error - \(error)")
             }
             complete()
         }
@@ -179,7 +179,7 @@ class PromiseAndFutureTests: XCTestCase {
                 let value: Void = try future.await()
                 XCTAssert(value == Void(), "Future value not matching: expected-\(Void()), provided-\(value)")
             } catch {
-                XCTFail("Future failed")
+                XCTFail("Future failed with error - \(error)")
             }
             complete()
         }
@@ -1005,7 +1005,7 @@ class PromiseAndFutureTests: XCTestCase {
                 let value: Void = try future.await()
                 XCTAssert(value == Void(), "Future value not matching: expected-\(Void()), provided-\(value)")
             } catch {
-                XCTFail("Future failed")
+                XCTFail("Future failed with error - \(error)")
             }
             complete()
         }
@@ -1245,7 +1245,7 @@ class PromiseAndFutureTests: XCTestCase {
                     return result && value == Void()
                 }), "Future value not matching: expected-\(Void()), provided-\(value)")
             } catch {
-                XCTFail("Future failed")
+                XCTFail("Future failed with error - \(error)")
             }
             complete()
         }
@@ -1295,7 +1295,7 @@ class PromiseAndFutureTests: XCTestCase {
                     return result && value == Void()
                 }), "Future value not matching: expected-\(Void()), provided-\(value)")
             } catch {
-                XCTFail("Future failed")
+                XCTFail("Future failed with error - \(error)")
             }
             complete()
         }
@@ -1338,7 +1338,7 @@ class PromiseAndFutureTests: XCTestCase {
                 let value: (Int8, Int16) = try joinedFuture.await()
                 XCTAssert(value.0 == 0 && value.1 == 0, "Future value not matching: expected-(\(0),\(0)), provided-\(value)")
             } catch {
-                XCTFail("Future failed")
+                XCTFail("Future failed with error - \(error)")
             }
             complete()
         }
@@ -1377,7 +1377,7 @@ class PromiseAndFutureTests: XCTestCase {
                 let value: (Int8, Int16) = try joinedFuture.await()
                 XCTAssert(value.0 == 0 && value.1 == 0, "Future value not matching: expected-(\(0),\(0)), provided-\(value)")
             } catch {
-                XCTFail("Future failed")
+                XCTFail("Future failed with error - \(error)")
             }
             complete()
         }
@@ -1418,7 +1418,7 @@ class PromiseAndFutureTests: XCTestCase {
                 let value: (Int8, Int16, Int32) = try joinedFuture.await()
                 XCTAssert(value.0 == 0 && value.1 == 0 && value.2 == 0, "Future value not matching: expected-(\(0),\(0),\(0)), provided-\(value)")
             } catch {
-                XCTFail("Future failed")
+                XCTFail("Future failed with error - \(error)")
             }
             complete()
         }
@@ -1461,7 +1461,7 @@ class PromiseAndFutureTests: XCTestCase {
                 let value: (Int8, Int16, Int32) = try joinedFuture.await()
                 XCTAssert(value.0 == 0 && value.1 == 0 && value.2 == 0, "Future value not matching: expected-(\(0),\(0),\(0)), provided-\(value)")
             } catch {
-                XCTFail("Future failed")
+                XCTFail("Future failed with error - \(error)")
             }
             complete()
         }
@@ -1507,7 +1507,7 @@ class PromiseAndFutureTests: XCTestCase {
                 let value: (Int8, Int16, Int32, Int64) = try joinedFuture.await()
                 XCTAssert(value.0 == 0 && value.1 == 0 && value.2 == 0 && value.3 == 0, "Future value not matching: expected-(\(0),\(0),\(0),\(0)), provided-\(value)")
             } catch {
-                XCTFail("Future failed")
+                XCTFail("Future failed with error - \(error)")
             }
             complete()
         }
@@ -1554,7 +1554,7 @@ class PromiseAndFutureTests: XCTestCase {
                 let value: (Int8, Int16, Int32, Int64) = try joinedFuture.await()
                 XCTAssert(value.0 == 0 && value.1 == 0 && value.2 == 0 && value.3 == 0, "Future value not matching: expected-(\(0),\(0),\(0),\(0)), provided-\(value)")
             } catch {
-                XCTFail("Future failed")
+                XCTFail("Future failed with error - \(error)")
             }
             complete()
         }
