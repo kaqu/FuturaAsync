@@ -7,7 +7,7 @@ let testIterations: UInt = 3
 let testSemaphore = DispatchSemaphore(value: 1)
 
 extension XCTestCase {
-    func asyncTest(iterationTimeout: TimeInterval = 2, iterations: UInt = testIterations, testBody: @escaping (@escaping ()->())->()) {
+    func asyncTest(iterationTimeout: TimeInterval = 3, iterations: UInt = testIterations, testBody: @escaping (@escaping ()->())->()) {
         
         let testQueue = DispatchQueue(label: "AsyncTestQueue")
         (0..<iterations).forEach { iteration in

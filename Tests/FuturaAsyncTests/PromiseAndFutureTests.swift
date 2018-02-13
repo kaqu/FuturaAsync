@@ -172,6 +172,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fulfill(with: ())
             }
             let future = promise.future
@@ -189,6 +190,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fail(with: "Error")
             }
             let future = promise.future
@@ -206,6 +208,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fulfill(with: ())
             }
             promise.future.value { value in
@@ -219,6 +222,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fail(with: "Error")
             }
             promise.future.error { error in
@@ -232,6 +236,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fulfill(with: ())
             }
             promise.future.result { result in
@@ -249,6 +254,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fail(with: "Error")
             }
             promise.future.result { result in
@@ -348,6 +354,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fulfill(with: ())
             }
             let future = promise.future.valueMap { _ in return (0 as Int) }
@@ -365,6 +372,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fail(with: "Error")
             }
             let future = promise.future.valueMap { _ in return (0 as Int) }
@@ -382,6 +390,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fulfill(with: ())
             }
             let future = promise.future.valueMap { _ in throw "Error" as Error }
@@ -399,6 +408,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fulfill(with: ())
             }
             promise.future.valueMap { _ in return (0 as Int) }.value { value in
@@ -412,6 +422,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fail(with: "Error")
             }
             promise.future.valueMap { _ in return (0 as Int) }.error { error in
@@ -425,6 +436,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fulfill(with: ())
             }
             promise.future.valueMap { _ in throw "Error" }.error { error in
@@ -438,6 +450,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fulfill(with: ())
             }
             promise.future.valueMap { _ in return (0 as Int) }.result { result in
@@ -455,6 +468,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fail(with: "Error")
             }
             promise.future.valueMap { _ in return (0 as Int) }.result { result in
@@ -472,6 +486,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fulfill(with: ())
             }
             promise.future.valueMap { _ in throw "Error" }.result { result in
@@ -612,6 +627,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fulfill(with: ())
             }
             let future: Future<Int> = promise.future.map {
@@ -636,6 +652,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fail(with: "Error")
             }
             let future: Future<Int> = promise.future.map {
@@ -660,6 +677,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fulfill(with: ())
             }
             let future: Future<Int> = promise.future.map { _ in
@@ -679,6 +697,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fulfill(with: ())
             }
             promise.future
@@ -701,6 +720,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fail(with: "Error")
             }
             promise.future
@@ -723,6 +743,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fulfill(with: ())
             }
             promise.future
@@ -740,6 +761,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fulfill(with: ())
             }
             promise.future
@@ -766,6 +788,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fail(with: "Error")
             }
             promise.future
@@ -792,6 +815,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fulfill(with: ())
             }
             promise.future
@@ -996,6 +1020,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fail(with: "Error")
             }
             let future = promise.future.withRecovery({ (error) throws -> (Void) in
@@ -1015,6 +1040,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fail(with: "Error")
             }
             let future = promise.future.withRecovery({ (error) throws -> (Void) in
@@ -1034,6 +1060,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fail(with: "Error")
             }
             promise.future.withRecovery({ (error) throws -> (Void) in
@@ -1049,6 +1076,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fail(with: "Error")
             }
             promise.future.withRecovery({ (error) throws -> (Void) in
@@ -1064,6 +1092,7 @@ class PromiseAndFutureTests: XCTestCase {
         asyncTest { complete in
             let promise = Promise<Void>()
             DispatchQueue.global().async {
+                sleep(1)
                 try? promise.fail(with: "Error")
             }
             promise.future.withRecovery({ (error) throws -> (Void) in
