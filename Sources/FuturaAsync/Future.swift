@@ -51,16 +51,16 @@ public final class Future<Value> {
         lock = NSConditionLock(condition: FutureLockConst.completed.rawValue)
     }
     
-    /// Make new Future object with task closure that will be performed using given worker to complete
-    public init(using worker: AsyncWorker = Worker.default, with task: @escaping ()throws->(Value)) {
+    /// Make new Future object with task closure and retry count (default is 0) that will be performed using given worker to complete
+    public init(using worker: AsyncWorker = Worker.default, retryCount: UInt = 0, with task: @escaping ()throws->(Value)) {
         state = .waiting
         lock = NSConditionLock(condition: FutureLockConst.waiting.rawValue)
         worker.schedule {
-            do {
-                try self.complete(with:task())
-            } catch {
-                try? self.complete(with:error)
+            var lastError: Error!
+            for _ in 0...retryCount {
+                do { return try self.complete(with:task()) } catch { lastError = error }
             }
+            try? self.complete(with:lastError)
         }
     }
 }

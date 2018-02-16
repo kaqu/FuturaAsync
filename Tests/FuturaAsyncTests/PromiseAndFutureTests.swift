@@ -155,6 +155,44 @@ class PromiseAndFutureTests: XCTestCase {
         }
     }
     
+    func testFailFutureWithClosureTaskAndRetry() {
+        asyncTest { complete in
+            var execCounter = 0
+            let future = Future<Void>(retryCount: 3) { execCounter += 1 ; throw "Error\(execCounter)" }
+            do {
+                _ = try future.await()
+                XCTFail("Future not failed")
+            } catch {
+                XCTAssert(error as? String == "Error4", "Future error not matching: expected-\("Error4"), provided-\(error)")
+            }
+            XCTAssert(execCounter == 4, "Retry performed \(execCounter) times - expected to exec 2 times")
+            complete()
+        }
+    }
+    
+    func testFulfillFutureWithClosureTaskAndRetry() {
+        asyncTest { complete in
+            var execCounter = 0
+            var counter = 2
+            let future = Future<Void>(retryCount: 3) {
+                execCounter += 1
+                guard counter == 0 else {
+                    counter -= 1
+                    throw "Error\(execCounter)"
+                }
+                return Void()
+            }
+            do {
+                let value: Void = try future.await()
+                XCTAssert(value == Void(), "Future value not matching: expected-\(Void()), provided-\(value)")
+            } catch {
+                XCTFail("Future failed with error - \(error)")
+            }
+            XCTAssert(execCounter == 3, "Retry performed \(execCounter) times - expected to exec 2 times")
+            complete()
+        }
+    }
+    
     func testFailFutureWithClosureTask() {
         asyncTest { complete in
             let future = Future<Void>() { throw "Error" }
