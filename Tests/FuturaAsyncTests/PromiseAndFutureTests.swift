@@ -71,11 +71,26 @@ class PromiseAndFutureTests: XCTestCase {
         }
     }
     
-    func testFutureTimeout() {
+    func testFutureAwaitTimeout() {
         asyncTest(iterationTimeout: 2) { complete in
             let promise = Promise<Void>()
             do {
                 _ = try promise.future.await(withTimeout: 1)
+                XCTFail("Future passed without timeout")
+            } catch FutureError.timeout {
+                // it is expected - do nothing
+            } catch {
+                XCTFail("Promise failed to complete twice with unexpected error: \(error)")
+            }
+            complete()
+        }
+    }
+    
+    func testFutureResultAwaitTimeout() {
+        asyncTest(iterationTimeout: 2) { complete in
+            let promise = Promise<Void>()
+            do {
+                _ = try promise.future.resultAwait(withTimeout: 1)
                 XCTFail("Future passed without timeout")
             } catch FutureError.timeout {
                 // it is expected - do nothing
@@ -237,6 +252,52 @@ class PromiseAndFutureTests: XCTestCase {
                 XCTFail("Future not failed")
             } catch {
                 XCTAssert(error as? String == "Error", "Future error not matching: expected-\("Error"), provided-\(error)")
+            }
+            complete()
+        }
+    }
+    
+    func testDelayedFulfillWithResultAwait() {
+        asyncTest { complete in
+            let promise = Promise<Void>()
+            DispatchQueue.global().async {
+                sleep(1)
+                try? promise.fulfill(with: ())
+            }
+            let future = promise.future
+            do {
+                let result: Future<Void>.Result = try future.resultAwait()
+                switch result {
+                case let .value(value):
+                    XCTAssert(value == Void(), "Future value not matching: expected-\(Void()), provided-\(value)")
+                case let .error(error):
+                    XCTFail("Future failed with error - \(error)")
+                }
+            } catch {
+                XCTFail("Future failed with error - \(error)")
+            }
+            complete()
+        }
+    }
+    
+    func testDelayedFailWithResultAwait() {
+        asyncTest { complete in
+            let promise = Promise<Void>()
+            DispatchQueue.global().async {
+                sleep(1)
+                try? promise.fail(with: "Error")
+            }
+            let future = promise.future
+            do {
+                let result: Future<Void>.Result = try future.resultAwait()
+                switch result {
+                case .value:
+                    XCTFail("Future not failed")
+                case let .error(error):
+                    XCTAssert(error as? String == "Error", "Future error not matching: expected-\("Error"), provided-\(error)")
+                }
+            } catch {
+                XCTFail("Future failed with error - \(error)")
             }
             complete()
         }
@@ -1651,13 +1712,16 @@ class PromiseAndFutureTests: XCTestCase {
     static var allTests = [
         ("testFulfillStateChanges", testFulfillStateChanges),
         ("testFailStateChanges", testFailStateChanges),
-        ("testFutureTimeout", testFutureTimeout),
+        ("testFutureAwaitTimeout", testFutureAwaitTimeout),
+        ("testFutureResultAwaitTimeout", testFutureResultAwaitTimeout),
         ("testFutureCancellation", testFutureCancellation),
         ("testFailedFutureMake", testFailedFutureMake),
         ("testFulfillFutureWithClosureTask", testFulfillFutureWithClosureTask),
         ("testFailFutureWithClosureTask", testFailFutureWithClosureTask),
         ("testDelayedFulfillWithAwait", testDelayedFulfillWithAwait),
         ("testDelayedFailWithAwait", testDelayedFailWithAwait),
+        ("testDelayedFulfillWithResultAwait", testDelayedFulfillWithResultAwait),
+        ("testDelayedFailWithResultAwait", testDelayedFailWithResultAwait),
         ("testDelayedFulfillWithValueCallback", testDelayedFulfillWithValueCallback),
         ("testDelayedFailWithErrorCallback", testDelayedFailWithErrorCallback),
         ("testDelayedFulfillWithResultCallback", testDelayedFulfillWithResultCallback),
