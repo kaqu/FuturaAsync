@@ -151,15 +151,7 @@ public extension Future {
     
     /// Thread blocking, synchronous way of getting Future value. Can take timeout value (in seconds) or wait forever if no timeout provided
     func await(withTimeout timeout: TimeInterval? = nil) throws -> Value {
-        if let timeout = timeout {
-            guard lock.lock(whenCondition: FutureLockConst.completed.rawValue, before: Date(timeIntervalSinceNow: timeout)) else {
-                throw FutureError.timeout
-            }
-        } else {
-            lock.lock(whenCondition: FutureLockConst.completed.rawValue)
-        }
-        defer { lock.unlock() }
-        switch try state.result() {
+        switch try resultAwait(withTimeout: timeout) {
         case let .value(value):
             return value
         case let .error(error):
