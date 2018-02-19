@@ -1,20 +1,21 @@
 # FuturaAsync
 
-<p align="center">
-    <img src="https://travis-ci.org/kaqu/FuturaAsync.svg?branch=master" />
-    <a href="https://codecov.io/gh/kaqu/FuturaAsync">
-        <img src="https://codecov.io/gh/kaqu/FuturaAsync/branch/master/graph/badge.svg" />
-    </a>
-    <img src="https://img.shields.io/badge/Swift-4.1-brightgreen.svg" />
-    <a href="https://twitter.com/kaqukal">
-        <img src="https://img.shields.io/badge/contact-@kaqukal-blue.svg?style=flat" alt="Twitter: @kaqukal" />
-    </a>
-</p>
+[![Build Status](https://travis-ci.org/kaqu/FuturaAsync.svg?branch=master)](https://travis-ci.org/kaqu/FuturaAsync)
+[![codebeat badge](https://codebeat.co/badges/4192d0ed-2655-40c0-9b88-43253d7fb992)](https://codebeat.co/projects/github-com-kaqu-futuraasync-master)
+[![codecov](https://codecov.io/gh/kaqu/FuturaAsync/branch/master/graph/badge.svg)](https://codecov.io/gh/kaqu/FuturaAsync)
+[![Swift Package Manager compatible](https://img.shields.io/badge/Swift%20Package%20Manager-compatible-brightgreen.svg)](https://github.com/apple/swift-package-manager)
+[![SwiftVersion](https://img.shields.io/badge/Swift-4.0-brightgreen.svg)]()
+[![Contact](https://img.shields.io/badge/contact-@kaqukal-blue.svg?style=flat)](https://twitter.com/kaqukal)
 
 
 Part of Futura tools Project.
 
-Provides promise implementation for iOS, macOS and Linux.
+Provides promise implementation for iOS and macOS.
+
+Use via Swift Package Manager
+```swift
+.package(url: "https://github.com/kaqu/FuturaAsync.git", from: "0.3.0"),
+```
 
 ```swift
 let promise = Promise<String>() // create promise - way to complete future
