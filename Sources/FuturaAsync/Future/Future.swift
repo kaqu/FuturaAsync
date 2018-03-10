@@ -96,39 +96,6 @@ public extension Future {
         }
         return mapped
     }
-    
-    /// Converts value of future with given function using selected worker, if source Future fails error is passed without modification, skipping transformation
-    func flatMap<Transformed>(using worker: Worker = asyncWorker, _ transformation: @escaping (Value) -> (FutureResult<Transformed>)) -> Future<Transformed> {
-        let mapped = Future<Transformed>()
-        result(using: worker) { result in
-            try? mapped.become(with: result.flatMap(transformation))
-        }
-        return mapped
-    }
-}
-
-public extension Future {
-    
-    convenience init<T>(merging futures: Future<T>...) where Value == Array<T> {
-        self.init()
-        let count = futures.count
-        let mtx = Mutex()
-        var resultsArray: Array<T> = []
-        futures.forEach { future in
-            future.result { result in
-                mtx.synchronized {
-                    switch result {
-                    case let .value(val):
-                        resultsArray.append(val)
-                        guard resultsArray.count == count else { return }
-                        try? self.become(with: .value(resultsArray))
-                    case let .error(err):
-                        try? self.become(with: .error(err))
-                    }
-                }
-            }
-        }
-    }
 }
 
 internal extension Future {
