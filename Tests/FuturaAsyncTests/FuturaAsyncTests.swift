@@ -1,40 +1,37 @@
 import XCTest
 @testable import FuturaAsync
 
-extension String : Error {}
-
-let testIterations: UInt = 3
-let testSemaphore = DispatchSemaphore(value: 1)
-
-extension XCTestCase {
-    func asyncTest(iterationTimeout: TimeInterval = 3, iterations: UInt = testIterations, testBody: @escaping (@escaping ()->())->()) {
-        
-        let testQueue = DispatchQueue(label: "AsyncTestQueue")
-        (0..<iterations).forEach { iteration in
-            testQueue.async {
-                testBody() { testSemaphore.signal() }
-            }
-            XCTAssert(.success == testSemaphore.wait(timeout: .now() + iterationTimeout), "Not in time - possible deadlock or fail - iteration: \(iteration)")
-        }
-    }
-}
-
 class FuturaAsyncTests: XCTestCase {
-    
-    func testAsyncBlockPerform() {
-        asyncTest { complete in
-            async {
+
+    func testGlobalSchedulePerform() {
+        asyncTest(timeoutBody: {
+            XCTFail("Not in time - possible deadlock or fail")
+        })
+        { complete in
+            schedule { () -> Void in
                 complete()
             }
         }
     }
     
-    func testAsyncBlockCatchable() {
-        asyncTest { complete in
+    func testThrowingGlobalSchedulePerform() {
+        asyncTest(timeoutBody: {
+            XCTFail("Not in time - possible deadlock or fail")
+        })
+        { complete in
+            schedule { () throws -> Void in
+                complete()
+            }
+        }
+    }
+
+    func testThrowingGlobalScheduleWithCatchable() {
+        asyncTest(timeoutBody: {
+            XCTFail("Not in time - possible deadlock or fail")
+        })
+        { complete in
             let errorToThrow = NSError(domain: "TEST", code: -1, userInfo: nil)
-            async {
-                throw errorToThrow
-                }
+            schedule { throw errorToThrow }
             .catch { error in
                 defer { complete() }
                 guard error as NSError == errorToThrow else {
@@ -44,9 +41,29 @@ class FuturaAsyncTests: XCTestCase {
             }
         }
     }
+}
 
-    static var allTests = [
-        ("testAsyncBlockPerform", testAsyncBlockPerform),
-        ("testAsyncBlockCatchable", testAsyncBlockCatchable),
-        ]
+// MARK: test extensions
+
+let performanceTestIterations = 10_000_000
+
+extension String : Error {}
+
+extension XCTestCase {
+    
+    func asyncTest(iterationTimeout: TimeInterval = 3, iterations: UInt = 1, timeoutBody: @escaping ()->(), testBody: @escaping (@escaping ()->())->()) {
+        let mtx = Mutex()
+        let testQueue = DispatchQueue(label: "AsyncTestQueue")
+        (0..<iterations).forEach { iteration in
+            testQueue.async {
+                mtx.lock()
+                testBody() { mtx.unlock() }
+            }
+            do {
+                try mtx.lock(timeout: UInt8(iterationTimeout))
+            } catch {
+                timeoutBody()
+            }
+        }
+    }
 }
