@@ -1,6 +1,7 @@
 # FuturaAsync
 
 [![Build Status](https://travis-ci.org/kaqu/FuturaAsync.svg?branch=master)](https://travis-ci.org/kaqu/FuturaAsync)
+[![Contact](https://img.shields.io/badge/platform-iOS%20|%20macOS%20|%20Linux-gray.svg?style=flat)]()
 [![codebeat badge](https://codebeat.co/badges/4192d0ed-2655-40c0-9b88-43253d7fb992)](https://codebeat.co/projects/github-com-kaqu-futuraasync-master)
 [![codecov](https://codecov.io/gh/kaqu/FuturaAsync/branch/master/graph/badge.svg)](https://codecov.io/gh/kaqu/FuturaAsync)
 [![Swift Package Manager compatible](https://img.shields.io/badge/Swift%20Package%20Manager-compatible-brightgreen.svg)](https://github.com/apple/swift-package-manager)
@@ -10,7 +11,7 @@
 
 Part of Futura tools Project.
 
-Provides promise implementation for iOS and macOS.
+Provides promise implementation for iOS, macOS and Linux.
 
 Use via Swift Package Manager
 
