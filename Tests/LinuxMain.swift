@@ -4,5 +4,7 @@ import XCTest
 XCTMain([
     testCase(FuturaAsyncTests.allTests),
     testCase(PromiseAndFutureTests.allTests),
-    testCase(WorkerTests.allTests),
+    testCase(WorkerAndCatchableTests.allTests),
+    testCase(FutureTests.allTests),
+    testCase(LockTests.allTests),
 ])
