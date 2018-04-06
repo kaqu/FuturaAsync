@@ -30,11 +30,11 @@ class FuturaAsyncTests: XCTestCase {
             XCTFail("Not in time - possible deadlock or fail")
         })
         { complete in
-            let errorToThrow = NSError(domain: "TEST", code: -1, userInfo: nil)
+            let errorToThrow = "TEST"
             schedule { throw errorToThrow }
             .catch { error in
                 defer { complete() }
-                guard error as NSError == errorToThrow else {
+                guard error as? String == errorToThrow else {
                     XCTFail("Not failed with proper error")
                     return
                 }
