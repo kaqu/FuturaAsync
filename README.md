@@ -11,7 +11,7 @@
 
 Part of Futura tools Project.
 
-Provides promise implementation for iOS and macOS.
+Provides promise implementation for iOS, macOS and Linux.
 
 Use via Swift Package Manager
 
