@@ -1,8 +1,11 @@
-//import XCTest
-//@testable import FuturaAsync
+import XCTest
+@testable import FuturaAsync
+
+class PromiseAndFutureTests: XCTestCase {
+    
+    static var allTests:[(String, (PromiseAndFutureTests)->()->())] = []
+}
 //
-//class PromiseAndFutureTests: XCTestCase {
-//    
 //    // since tests are performed on main thread change default closure worker to avoid deadlocks
 ////    let setup: Void = { Worker.applicationDefault = .default }()
 //    

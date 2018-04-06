@@ -156,4 +156,17 @@ class LockTests: XCTestCase {
         }
 
     }
+    
+    static var allTests = [
+        ("testReleasingLockedLock", testReleasingLockedLock),
+        ("testLockLock", testLockLock),
+        ("testLockLockAndUnlock", testLockLockAndUnlock),
+        ("testLockTryLockSuccess", testLockTryLockSuccess),
+        ("testLockTryLockFail", testLockTryLockFail),
+        ("testLockTimeout", testLockTimeout),
+        ("testLockSynchronized", testLockSynchronized),
+        ("testThrowingLockSynchronized", testThrowingLockSynchronized),
+        ("testLockAndUnlockPerformance", testLockAndUnlockPerformance),
+        ("testLockAndUnlockWithTimeoutPerformance", testLockAndUnlockWithTimeoutPerformance),
+        ]
 }

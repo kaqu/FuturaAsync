@@ -53,6 +53,9 @@ class FutureTests: XCTestCase {
         sleep(3)
     }
     
+    static var allTests = [
+        ("testFailableFuture", testFailableFuture),
+    ]
 //    func testFutureAwaitTimeout() {
 //        asyncTest(timeoutBody: {
 //            XCTFail("Not in time - possible deadlock or fail")

@@ -41,6 +41,12 @@ class FuturaAsyncTests: XCTestCase {
             }
         }
     }
+    
+    static var allTests = [
+        ("testGlobalSchedulePerform", testGlobalSchedulePerform),
+        ("testThrowingGlobalSchedulePerform", testThrowingGlobalSchedulePerform),
+        ("testThrowingGlobalScheduleWithCatchable", testThrowingGlobalScheduleWithCatchable),
+        ]
 }
 
 // MARK: test extensions

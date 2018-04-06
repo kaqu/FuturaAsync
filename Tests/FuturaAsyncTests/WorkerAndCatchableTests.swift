@@ -1,8 +1,11 @@
-//import XCTest
-//@testable import FuturaAsync
+import XCTest
+@testable import FuturaAsync
+
+class WorkerAndCatchableTests: XCTestCase {
+    static var allTests:[(String, (WorkerAndCatchableTests)->()->())] = []
+}
+
 //
-//class WorkerAndCatchableTests: XCTestCase {
-//    
 //    override func setUp() {
 //        super.setUp()
 //    }
