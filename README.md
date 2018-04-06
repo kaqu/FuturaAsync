@@ -13,55 +13,99 @@ Part of Futura tools Project.
 Provides promise implementation for iOS and macOS.
 
 Use via Swift Package Manager
-```swift
-.package(url: "https://github.com/kaqu/FuturaAsync.git", from: "0.3.0"),
+
+``` swift
+.package(url: "https://github.com/kaqu/FuturaAsync.git", from: "1.0.0"),
 ```
 
-```swift
-let promise = Promise<String>() // create promise - way to complete future
-DispatchQueue.global().asyncAfter(deadline: .now() + 3) {
-    try? promise.fulfill(with: "Works!") // async fulfill
-}
-let future = promise.future // gather promise future - read only view for async state
+Sample usage
 
-async { // async block on default DispatchQueue
-    let result = try? future.await() // wait until result or throws error
-    print(result)
-}
-print("Async waiting")
-```
-
-You can map futures to other types
 ```swift
 let promise = Promise<Int>()
-// Handler called only if value recived, errors passed unmodified
-let stringValueFuture: Future<String> = promise.future.valueMap { value in return "\(value)" }
-// Handler called on value and on error
-let stringResultFuture: Future<String> = promise.future.map { result in 
-    switch result {
-    case let value(value):
-        return "\(value)" 
-    case let error(error):
-        throw error
+let future = promise.future
+future
+    .thenValue {
+        print("Success: \($0)")
     }
-}
+    .thenError {
+        print("Error: \($0)")
+    }
+    .mapValue {
+        return String($0)
+    }
+    .thenValue {
+        print("Success(mapped): \($0)")
+    }
+    .thenError {
+        print("Error(mapped): \($0)")
+    }
+    .recover { err in
+        if (err as? String) == "recoverable" {
+            return "Recovery!"
+        } else {
+            throw err
+        }
+    }
+    .thenValue {
+        print("Success(mapped, recoverable): \($0)")
+    }
+    .thenError {
+        print("Error(mapped, recoverable): \($0)")
+    }
+    .map {
+        switch $0 {
+        case let .value(val):
+            return val
+        case .error:
+            return "Errors sometimes happen"
+        }
+    }
+    .then { (val: String) in
+        print("Always success(mapped, recoverable, map to Future form FailableFuture): \(val)")
+    }
 ```
 
-You can try to recover from future fails
-```swift
-let promise = Promise<Int>()
-// Handler called when error occours
-let future = promise.future.withRecovery { error throws -> Int in return 0 }
+calling
+
+``` swift
+promise.fulfill(with: 9)
 ```
 
-You can merge and join multiple futures
-```swift
-let promise_1 = Promise<Int8>()
-let promise_2 = Promise<Int16>()
-// merge different types to tuple (up to four)
-let mergedFuture: Future<(Int8,Int16)> = Future(merging: promise_1.future, promise_2.future)
-// join same type to array (any number)
-let joinedFuture: Future<[Void]> = Future(joining: Promise<Void>().future, Promise<Void>().future, Promise<Void>().future)
+prints
 
+``` swift
+Success: 9
+Success(mapped): 9
+Success(mapped, recoverable): 9
+Always success(mapped, recoverable, map to Future form FailableFuture): 9
 ```
 
+calling
+
+``` swift
+promise.break() // cancel
+```
+
+prints
+
+``` swift
+Error: cancelled
+Error(mapped): cancelled
+Error(mapped, recoverable): cancelled
+Always success(mapped, recoverable, map to Future form FailableFuture): Errors sometimes happen
+```
+
+calling
+
+``` swift
+promise.break(with: "recoverable" as Error)
+```
+
+prints
+
+``` swift
+Error: recoverable
+Error(mapped): recoverable
+Success(mapped, recoverable): Recovery!
+Always success(mapped, recoverable, map to Future form FailableFuture): Recovery!
+```
