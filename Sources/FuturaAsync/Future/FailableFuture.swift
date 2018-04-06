@@ -8,7 +8,7 @@ public extension FailableFuture {
     }
     
     @discardableResult
-    func thenValue<T>(in context: ExecutionContext = .async(using: mainWorker), perform block: @escaping (T) -> ()) -> Self  where Expectation == Result<T> {
+    func thenValue<T>(in context: ExecutionContext = .async(using: defaultWorker), perform block: @escaping (T) -> ()) -> Self  where Expectation == Result<T> {
         let handlerClosure: (Result<T>)->() = {
             switch $0 {
             case let .value(value):
@@ -20,7 +20,7 @@ public extension FailableFuture {
     }
     
     @discardableResult
-    func thenError<T>(in context: ExecutionContext = .async(using: mainWorker), perform block: @escaping (Error) -> ()) -> Self where Expectation == Result<T> {
+    func `catch`<T>(in context: ExecutionContext = .async(using: defaultWorker), perform block: @escaping (Error) -> ()) -> Self where Expectation == Result<T> {
         let handlerClosure: (Result<T>)->() = {
             switch $0 {
             case .value: break
@@ -31,7 +31,7 @@ public extension FailableFuture {
         return then(use: FailableFuture.Handler(context: context, handler: handlerClosure))
     }
     
-    func mapValue<T, Transformed>(in context: ExecutionContext = .inherit, _ transformation: @escaping (T) throws -> (Transformed)) -> FailableFuture<Transformed> where Expectation == Result<T> {
+    func mapValue<T, Transformed>(to: Transformed.Type, in context: ExecutionContext = .inherit, _ transformation: @escaping (T) throws -> (Transformed)) -> FailableFuture<Transformed> where Expectation == Result<T> {
         let mapped = FailableFuture<Transformed>()
         then(in: context) { value in
             do {

@@ -31,8 +31,13 @@ public final class Lock : LockProtocol {
     public init() {
         let attr = UnsafeMutablePointer<pthread_mutexattr_t>.allocate(capacity: 1)
         guard pthread_mutexattr_init(attr) == 0 else { preconditionFailure() }
+        #if os(Linux)
         pthread_mutexattr_settype(attr, Int32(PTHREAD_MUTEX_NORMAL))
         pthread_mutexattr_setpshared(attr, Int32(PTHREAD_PROCESS_PRIVATE))
+        #else
+        pthread_mutexattr_settype(attr, PTHREAD_MUTEX_NORMAL)
+        pthread_mutexattr_setpshared(attr, PTHREAD_PROCESS_PRIVATE)
+        #endif
         guard pthread_mutex_init(mtx, attr) == 0 else { preconditionFailure() }
         pthread_mutexattr_destroy(attr)
         attr.deinitialize(count: 1)

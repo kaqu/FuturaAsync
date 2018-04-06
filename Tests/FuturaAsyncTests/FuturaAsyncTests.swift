@@ -58,15 +58,15 @@ extension String : Error {}
 extension XCTestCase {
     
     func asyncTest(iterationTimeout: TimeInterval = 3, iterations: UInt = 1, timeoutBody: @escaping ()->(), testBody: @escaping (@escaping ()->())->()) {
-        let mtx = Lock()
+        let lock = Lock()
         let testQueue = DispatchQueue(label: "AsyncTestQueue")
         (0..<iterations).forEach { iteration in
+            lock.lock()
             testQueue.async {
-                mtx.lock()
-                testBody() { mtx.unlock() }
+                testBody() { lock.unlock() }
             }
             do {
-                try mtx.lock(timeout: UInt8(iterationTimeout))
+                try lock.lock(timeout: UInt8(iterationTimeout))
             } catch {
                 timeoutBody()
             }

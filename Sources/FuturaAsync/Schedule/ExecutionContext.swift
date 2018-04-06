@@ -25,9 +25,9 @@ internal extension ExecutionContext {
             } catch {
                 catchable.handle(error: error)
             }
+            return catchable
         case let .async(worker):
-            worker.schedule(function)
-        }
-        return catchable
+            return worker.schedule(function)
+        }   
     }
 }

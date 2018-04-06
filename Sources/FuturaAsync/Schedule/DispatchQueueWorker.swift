@@ -20,6 +20,7 @@ extension DispatchQueueWorker : Worker {
         queue.async {
             do {
                 try work()
+                catchable.close()
             } catch {
                 catchable.handle(error: error)
             }

@@ -3,58 +3,187 @@ import XCTest
 
 class FutureTests: XCTestCase {
     
-    func testFailableFuture() {
-        let fut = FailableFuture<Int>()
-//        fut.succeed(with: 9)
-        fut.fail(with: "ERR")
-//        fut.fail(with: "recoverable")
-        fut
-        .thenValue {
-            print("Success: \($0)")
-        }
-        .thenError {
-             print("Error: \($0)")
-        }
-        .mapValue {
-            return String($0)
-        }
-        .thenValue {
-            print("Success(mapped): \($0)")
-        }
-        .thenError {
-            print("Error(mapped): \($0)")
-        }
-        .recover { err in
-            if (err as? String) == "recoverable" {
-                return "Recovery!"
-            } else {
-                throw err
+    func testSuccessFutureChain() {
+        asyncTest(timeoutBody: {
+            XCTFail("Not in time - possible deadlock or fail")
+        })
+        { complete in
+            let promise = Promise<Int>()
+            let future = promise.future
+            promise.fulfill(with: 1)
+            future
+                .thenValue {
+                    XCTAssert($0 == 1, "Value not matching expected - \($0) != 1")
+                }
+                .catch {
+                    XCTFail("Unexpected error \($0)")
+                }
+                .mapValue(to: String.self) {
+                    return String($0)
+                }
+                .thenValue {
+                    XCTAssert($0 == "1", "Value not matching expected - \($0) != 1")
+                }
+                .catch {
+                    XCTFail("Unexpected error \($0)")
+                }
+                .recover { err in
+                    if (err as? String) == "recoverable" {
+                        return "rec"
+                    } else {
+                        throw err
+                    }
+                }
+                .thenValue {
+                    XCTAssert($0 == "1", "Value not matching expected - \($0) != 1")
+                }
+                .catch {
+                    XCTFail("Unexpected error \($0)")
+                }
+                .map(to: String.self) {
+                    switch $0 {
+                    case let .value(val):
+                        return val
+                    case .error:
+                        return "ign"
+                    }
+                }
+                .then { (val: String) in
+                    XCTAssert(val == "1", "Value not matching expected - \(val) != 1")
+                    
+                }
+                .after {
+                    complete()
+                }
             }
-        }
-        .thenValue {
-            print("Success(mapped, recoverable): \($0)")
-        }
-        .thenError {
-            print("Error(mapped, recoverable): \($0)")
-        }
-        .map {
-            switch $0 {
-            case let .value(val):
-                return val
-            case .error:
-                return "Errors sometimes happen"
-            }
-        }
-        .then { (val: String) in
-            print("Always success(mapped, recoverable, map to Future form FailableFuture): \(val)")
-        }
-        
-        print(fut.examine())
-        sleep(3)
     }
     
+    func testRecoverableFutureChain() {
+        asyncTest(timeoutBody: {
+            XCTFail("Not in time - possible deadlock or fail")
+        })
+        { complete in
+            let promise = Promise<Int>()
+            let future = promise.future
+            promise.break(with: "recoverable")
+            future
+                .thenValue { _ in
+                    XCTFail("Expected to fail")
+                }
+                .catch {
+                    XCTAssert($0 as? String == "recoverable", "Error not matching expected - \($0) != recoverable")
+                }
+                .mapValue(to: String.self) {
+                    return String($0)
+                }
+                .thenValue { _ in
+                    XCTFail("Expected to fail")
+                }
+                .catch {
+                    XCTAssert($0 as? String == "recoverable", "Error not matching expected - \($0) != recoverable")
+                }
+                .recover { err in
+                    if (err as? String) == "recoverable" {
+                        return "rec"
+                    } else {
+                        throw err
+                    }
+                }
+                .thenValue {
+                    XCTAssert($0 == "rec", "Value not matching expected - \($0) != rec")
+                }
+                .catch {
+                    XCTFail("Unexpected error \($0)")
+                }
+                .map(to: String.self) {
+                    switch $0 {
+                    case let .value(val):
+                        return val
+                    case .error:
+                        return "ign"
+                    }
+                }
+                .then { (val: String) in
+                    XCTAssert(val == "rec", "Value not matching expected - \(val) != rec")
+                    
+                }
+                .after {
+                    complete()
+                }
+        }
+    }
+    
+    func testErrorFutureChain() {
+        asyncTest(timeoutBody: {
+            XCTFail("Not in time - possible deadlock or fail")
+        })
+        { complete in
+            let promise = Promise<Int>()
+            let future = promise.future
+            promise.break(with: "ERR")
+            future
+                .thenValue { _ in
+                    XCTFail("Expected to fail")
+                }
+                .catch {
+                    XCTAssert($0 as? String == "ERR", "Error not matching expected - \($0) != ERR")
+                }
+                .mapValue(to: String.self) {
+                    return String($0)
+                }
+                .thenValue { _ in
+                    XCTFail("Expected to fail")
+                }
+                .catch {
+                    XCTAssert($0 as? String == "ERR", "Error not matching expected - \($0) != ERR")
+                }
+                .recover { err in
+                    if (err as? String) == "recoverable" {
+                        return "rec"
+                    } else {
+                        throw err
+                    }
+                }
+                .thenValue { _ in
+                    XCTFail("Expected to fail")
+                }
+                .catch {
+                    XCTAssert($0 as? String == "ERR", "Error not matching expected - \($0) != ERR")
+                }
+                .map(to: String.self) {
+                    switch $0 {
+                    case let .value(val):
+                        return val
+                    case .error:
+                        return "ign"
+                    }
+                }
+                .then { (val: String) in
+                    XCTAssert(val == "ign", "Value not matching expected - \(val) != ign")
+                    
+                }
+                .after {
+                    complete()
+                }
+        }
+    }
+    
+    func testFutureWithInitialValue() {
+        let future = FailableFuture<Int>(with: .value(1))
+        if let val = try? future.examineValue() {
+            XCTAssert(val == 1, "Value not matching expected - \(String(describing: val)) != 1")
+        } else {
+            XCTFail("Expected to contain value")
+        }
+        
+        
+    }
+        
     static var allTests = [
-        ("testFailableFuture", testFailableFuture),
+        ("testSuccessFutureChain", testSuccessFutureChain),
+        ("testRecoverableFutureChain", testRecoverableFutureChain),
+        ("testErrorFutureChain", testErrorFutureChain),
+        ("testFutureWithInitialValue", testFutureWithInitialValue),
     ]
 //    func testFutureAwaitTimeout() {
 //        asyncTest(timeoutBody: {

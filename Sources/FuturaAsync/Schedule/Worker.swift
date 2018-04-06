@@ -3,6 +3,8 @@ public var mainWorker: Worker = DispatchQueueWorker.main
 /// default async worker
 public var asyncWorker: Worker = DispatchQueueWorker.default
 
+public var defaultWorker: Worker = asyncWorker
+
 public protocol Worker {
     
     func schedule(_ work: @escaping () -> Void) -> Void

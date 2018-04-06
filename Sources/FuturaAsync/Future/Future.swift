@@ -21,7 +21,12 @@ public extension Future {
     }
     
     @discardableResult
-    func then(in context: ExecutionContext = .async(using: mainWorker), perform block: @escaping (Expectation) -> ()) -> Self {
+    func after(in context: ExecutionContext = .async(using: defaultWorker), perform block: @escaping () -> ()) -> Self {
+        return then(use: Future.Handler(context: context, handler: { _ in block() }))
+    }
+    
+    @discardableResult
+    func then(in context: ExecutionContext = .async(using: defaultWorker), perform block: @escaping (Expectation) -> ()) -> Self {
         return then(use: Future.Handler(context: context, handler: block))
     }
     
@@ -38,7 +43,7 @@ public extension Future {
         return self
     }
     
-    func map<Transformed>(in context: ExecutionContext = .inherit, _ transformation: @escaping (Expectation) throws -> (Transformed)) -> Future<Transformed> {
+    func map<Transformed>(to: Transformed.Type, in context: ExecutionContext = .inherit, _ transformation: @escaping (Expectation) throws -> (Transformed)) -> Future<Transformed> {
         let mapped = Future<Transformed>()
         then(in: context) { value in
             try? mapped.become(with: transformation(value))

@@ -20,16 +20,9 @@ public extension Result {
         }
     }
     
-    public func map<T>(_ transform: (Value) throws -> T) -> Result<T> {
+    public func mapValue<T>(_ transform: (Value) throws -> T) -> Result<T> {
         switch self {
         case .value(let val): return Result<T> { try transform(val) }
-        case .error(let e): return .error(e)
-        }
-    }
-    
-    func flatMap<T>(_ transform: (Value) -> Result<T>) -> Result<T> {
-        switch self {
-        case .value(let val): return transform(val)
         case .error(let e): return .error(e)
         }
     }

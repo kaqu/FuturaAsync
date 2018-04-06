@@ -3,7 +3,7 @@ public final class Catchable {
     private let future: FailableFuture<Void> = Future()
     
     public func `catch`(_ handler: @escaping (Error) -> Void) -> Void {
-        future.thenError(perform: handler)
+        future.catch(perform: handler)
     }
     
     internal func handle(error: Error) {
