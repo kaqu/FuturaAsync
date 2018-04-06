@@ -2,7 +2,6 @@ import XCTest
 @testable import FuturaAsync
 
 class WorkerAndCatchableTests: XCTestCase {
-    static var allTests:[(String, (WorkerAndCatchableTests)->()->())] = []
 
     #if os(macOS)
     func testDispatchQueueWorkerQueue() {
