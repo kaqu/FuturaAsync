@@ -4,6 +4,7 @@ import XCTest
 class WorkerAndCatchableTests: XCTestCase {
     static var allTests:[(String, (WorkerAndCatchableTests)->()->())] = []
 
+    #if os(macOS)
     func testDispatchQueueWorkerQueue() {
         XCTAssert(DispatchQueueWorker.main.queue == .main, "Main worker is not main queue")
         XCTAssert(DispatchQueueWorker.default.queue == .global(qos: .default), "Default worker is not default queue")
@@ -12,6 +13,7 @@ class WorkerAndCatchableTests: XCTestCase {
         let testQueue = DispatchQueue(label: "TestQueue")
         XCTAssert(DispatchQueueWorker.custom(testQueue).queue == testQueue, "Custom worker is not custom queue")
     }
+    #endif
 
     func testWorkerClosurePerform() {
         asyncTest(timeoutBody: {
@@ -124,5 +126,15 @@ class WorkerAndCatchableTests: XCTestCase {
             }
         }
     }
+    
+    static var allTests = [
+        ("testWorkerClosurePerform", testWorkerClosurePerform),
+        ("testThrowingWorkerClosurePerform", testThrowingWorkerClosurePerform),
+        ("testWorkerClosurePerformWithCatchable", testWorkerClosurePerformWithCatchable),
+        ("testWorkerClosurePerformWithCatchableMemoryReleaseWithoutError", testWorkerClosurePerformWithCatchableMemoryReleaseWithoutError),
+        ("testWorkerClosurePerformWithCatchableMemoryReleaseOnError", testWorkerClosurePerformWithCatchableMemoryReleaseOnError),
+        ("testCatchableDoubleCompleteWithCompletion", testCatchableDoubleCompleteWithCompletion),
+        ("testCatchableHandlerAfterCompletion", testCatchableHandlerAfterCompletion),
+        ]
 }
 
