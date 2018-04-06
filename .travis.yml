@@ -9,7 +9,7 @@ matrix:
       sudo: required
       env: SWIFT_SNAPSHOT=swift-4.1-DEVELOPMENT-SNAPSHOT-2018-02-06-a
     - os: osx
-      osx_image: xcode9.2
+      osx_image: xcode9.3beta
       sudo: required
       env: SWIFT_SNAPSHOT=swift-4.1-DEVELOPMENT-SNAPSHOT-2018-02-06-a
 
