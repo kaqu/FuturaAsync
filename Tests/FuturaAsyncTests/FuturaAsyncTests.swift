@@ -52,7 +52,7 @@ extension String : Error {}
 extension XCTestCase {
     
     func asyncTest(iterationTimeout: TimeInterval = 3, iterations: UInt = 1, timeoutBody: @escaping ()->(), testBody: @escaping (@escaping ()->())->()) {
-        let mtx = Mutex()
+        let mtx = Lock()
         let testQueue = DispatchQueue(label: "AsyncTestQueue")
         (0..<iterations).forEach { iteration in
             testQueue.async {

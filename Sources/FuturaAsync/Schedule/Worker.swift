@@ -9,4 +9,10 @@ public protocol Worker {
     
     @discardableResult
     func schedule(_ work: @escaping () throws -> Void) -> Catchable
+    
+    @discardableResult
+    func scheduleAndWait<T>(_ work: @escaping () -> T) -> T
+    
+    @discardableResult
+    func scheduleAndWait<T>(_ work: @escaping () throws -> T) rethrows -> T
 }

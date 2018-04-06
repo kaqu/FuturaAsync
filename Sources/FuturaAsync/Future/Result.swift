@@ -1,9 +1,9 @@
-public enum FutureResult<Value> {
+public enum Result<Value> {
     case value(Value)
     case error(Error)
 }
 
-public extension FutureResult {
+public extension Result {
     
     init(resolving closure: () throws -> Value) {
         do {
@@ -20,22 +20,17 @@ public extension FutureResult {
         }
     }
     
-    public func map<T>(_ transform: (Value) throws -> T) -> FutureResult<T> {
+    public func map<T>(_ transform: (Value) throws -> T) -> Result<T> {
         switch self {
-        case .value(let val): return FutureResult<T> { try transform(val) }
+        case .value(let val): return Result<T> { try transform(val) }
         case .error(let e): return .error(e)
         }
     }
     
-    func flatMap<T>(_ transform: (Value) -> FutureResult<T>) -> FutureResult<T> {
+    func flatMap<T>(_ transform: (Value) -> Result<T>) -> Result<T> {
         switch self {
         case .value(let val): return transform(val)
         case .error(let e): return .error(e)
         }
     }
-}
-
-public enum FutureError : Error {
-    case alreadyCompleted
-    case timeout
 }

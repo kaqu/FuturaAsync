@@ -1,21 +1,15 @@
 public extension Future {
     
-    convenience init<T>(merging futures: Future<T>...) where Value == Array<T> {
+    convenience init<T>(merging futures: Future<T>...) where Expectation == Array<T> {
         self.init()
         let count = futures.count
-        let mtx = Mutex()
+        let lck = Lock()
         var resultsArray: Array<T> = []
         futures.forEach { future in
-            future.result { result in
-                mtx.synchronized {
-                    switch result {
-                    case let .value(val):
-                        resultsArray.append(val)
-                        guard resultsArray.count == count else { return }
-                        try? self.become(with: .value(resultsArray))
-                    case let .error(err):
-                        try? self.become(with: .error(err))
-                    }
+            future.then { value in
+                lck.synchronized {
+                    resultsArray.append(value)
+                    guard resultsArray.count == count else { return }
                 }
             }
         }

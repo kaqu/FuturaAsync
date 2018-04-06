@@ -1,43 +1,24 @@
-import Foundation
-
-/**
- Promise is declaration of delayed/async value. Use it to manipulate result of that declaration.
- */
-public final class Promise<Value> : FutureRepresentable<Value> {
-
-    /**
-     Promise with task closure and retry count (default is 0) that will be performed using given worker to complete
-     */
-    public convenience init(using worker: Worker = asyncWorker, withTriesCount retryCount: UInt = 0, performing task: @escaping () throws -> (Value)) {
-        self.init()
-        worker.schedule {
-            var lastError: Error!
-            for _ in 0...retryCount {
-                do { return try self.fulfill(with:task()) } catch { lastError = error }
-            }
-            try? self.reject(with:lastError)
-        }
-    }
-}
+public typealias Promise<T> = Delayed<Result<T>>
 
 public extension Promise {
-
-    // MARK: control
-
-    /**
-     Fulfill promise - completes successfully with value.
-     Throws an error if Future was already completed.
-     */
-    func fulfill(with value: Value) throws {
-        try future.fulfill(with: value)
+    
+    public convenience init<T>(using worker: Worker = asyncWorker, withTriesCount retryCount: UInt = 0, performing task: @escaping () throws -> (T))  where Value == Result<T> {
+        self.init()
+        var lastError: Error?
+        worker.schedule {
+            for _ in 0...retryCount {
+                do { return try self.fulfill(with: task()) } catch { lastError = error }
+            }
+            guard let lastError = lastError else { return }
+            self.break(with:lastError)
+        }
     }
-
-    /**
-     Fail promise with error - completes unsuccessfully with error.
-     Throws an error if Future was already completed.
-     */
-    func reject(with error: Error) throws {
-        try future.fail(with: error)
+    
+    func fulfill<T>(with value: T) where Value == Result<T> {
+        future.succeed(with: value)
+    }
+    
+    func `break`<T>(with error: Error = PromiseError.cancelled) where Value == Result<T> {
+        future.fail(with: error)
     }
 }
-

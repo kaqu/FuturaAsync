@@ -1,22 +1,19 @@
 public final class FutureHandler<Value> {
     
-    internal let associatedWorker: Worker?
-    internal let handler: (FutureResult<Value>) -> Void
+    internal let context: ExecutionContext
+    internal let handler: (Value) -> Void
     
-    public init(associatedWorker: Worker? = nil, handler: @escaping (FutureResult<Value>) -> Void) {
-        self.associatedWorker = associatedWorker
+    public init(context: ExecutionContext = .inherit, handler: @escaping (Value) -> Void) {
+        self.context = context
         self.handler = handler
     }
 }
 
 internal extension FutureHandler {
     
-    func trigger(with result: FutureResult<Value>) -> Void {
-        switch associatedWorker {
-        case let .some(worker):
-            worker.schedule { self.handler(result) }
-        case .none:
-            self.handler(result)
+    func trigger(with value: Value) -> Void {
+        context.execute {
+            self.handler(value)
         }
     }
 }

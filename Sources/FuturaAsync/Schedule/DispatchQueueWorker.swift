@@ -20,12 +20,21 @@ extension DispatchQueueWorker : Worker {
         queue.async {
             do {
                 try work()
-                catchable.complete()
             } catch {
-                catchable.complete(with: error)
+                catchable.handle(error: error)
             }
         }
         return catchable
+    }
+    
+    @discardableResult
+    public func scheduleAndWait<T>(_ work: @escaping () -> T) -> T {
+        return queue.sync(execute: work)
+    }
+    
+    @discardableResult
+    public func scheduleAndWait<T>(_ work: @escaping () throws -> T) rethrows -> T {
+        return try queue.sync(execute: work)
     }
 }
 

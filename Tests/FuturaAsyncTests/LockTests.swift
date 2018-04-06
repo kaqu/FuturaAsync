@@ -1,66 +1,66 @@
 import XCTest
 @testable import FuturaAsync
 
-class MutexTests: XCTestCase {
+class LockTests: XCTestCase {
     
-    func testReleasingLockedMutex() {
-        Mutex().lock()
+    func testReleasingLockedLock() {
+        Lock().lock()
     }
     
-    func testMutexLock() {
+    func testLockLock() {
         asyncTest(timeoutBody: {
             XCTFail("Not in time - possible deadlock or fail")
         })
         { complete in
-            let mutex = Mutex()
-            mutex.lock()
+            let lock = Lock()
+            lock.lock()
             DispatchQueueWorker.default.schedule {
                 complete()
             }
-            mutex.lock()
-            XCTFail("Mutex unlocked while should be locked")
+            lock.lock()
+            XCTFail("Lock unlocked while should be locked")
         }
     }
     
-    func testMutexLockAndUnlock() {
+    func testLockLockAndUnlock() {
         asyncTest(timeoutBody: {
             XCTFail("Not in time - possible deadlock or fail")
         })
         { complete in
-            let mutex = Mutex()
-            mutex.lock()
+            let lock = Lock()
+            lock.lock()
             DispatchQueueWorker.default.schedule {
-                mutex.unlock()
+                lock.unlock()
             }
-            mutex.lock()
+            lock.lock()
             complete()
         }
     }
     
-    func testMutexTryLockSuccess() {
+    func testLockTryLockSuccess() {
         asyncTest(timeoutBody: {
             XCTFail("Not in time - possible deadlock or fail")
         })
         { complete in
-            let mutex = Mutex()
-            if mutex.tryLock() {
+            let lock = Lock()
+            if lock.tryLock() {
                 // expected
             } else {
-                XCTFail("Mutex failed to lock")
+                XCTFail("Lock failed to lock")
             }
             complete()
         }
     }
     
-    func testMutexTryLockFail() {
+    func testLockTryLockFail() {
         asyncTest(timeoutBody: {
             XCTFail("Not in time - possible deadlock or fail")
         })
         { complete in
-            let mutex = Mutex()
-            mutex.lock()
-            if mutex.tryLock() {
-                XCTFail("Mutex not failed to lock")
+            let lock = Lock()
+            lock.lock()
+            if lock.tryLock() {
+                XCTFail("Lock not failed to lock")
             } else {
                 // expected
             }
@@ -68,16 +68,16 @@ class MutexTests: XCTestCase {
         }
     }
     
-    func testMutexTimeout() {
+    func testLockTimeout() {
         asyncTest(timeoutBody: {
             XCTFail("Not in time - possible deadlock or fail")
         })
         { complete in
-            let mutex = Mutex()
-            mutex.lock()
+            let lock = Lock()
+            lock.lock()
             do {
-                try mutex.lock(timeout: 1)
-                XCTFail("Mutex not failed to lock")
+                try lock.lock(timeout: 1)
+                XCTFail("Lock not failed to lock")
             } catch {
                 // expected
             }
@@ -85,44 +85,44 @@ class MutexTests: XCTestCase {
         }
     }
     
-    func testMutexSynchronized() {
+    func testLockSynchronized() {
         asyncTest(iterationTimeout: 5, timeoutBody: {
             XCTFail("Not in time - possible deadlock or fail")
         })
         { complete in
             var testValue = 0
-            let mutex = Mutex()
+            let lock = Lock()
             DispatchQueueWorker.default.schedule {
                 sleep(1)
-                mutex.synchronized {
+                lock.synchronized {
                     XCTAssert(testValue == 1, "Test value not changed")
                     testValue = -1
                 }
             }
-            mutex.synchronized {
+            lock.synchronized {
                 testValue = 1
                 sleep(2)
                 XCTAssert(testValue == 1, "Test value changed without synchronization")
             }
             sleep(1)
-            mutex.synchronized {
+            lock.synchronized {
                 XCTAssert(testValue == -1, "Test value not changed before completing")
             }
             complete()
         }
     }
     
-    func testThrowingMutexSynchronized() {
+    func testThrowingLockSynchronized() {
         asyncTest(iterationTimeout: 5, timeoutBody: {
             XCTFail("Not in time - possible deadlock or fail")
         })
         { complete in
-            let mutex = Mutex()
+            let lock = Lock()
             do {
-                try mutex.synchronized {
+                try lock.synchronized {
                     throw "TEST"
                 }
-                XCTFail("Mutex not threw")
+                XCTFail("Lock not threw")
             } catch {
                 // expected
             }
@@ -132,7 +132,7 @@ class MutexTests: XCTestCase {
     
     func testLockAndUnlockPerformance() {
         measure {
-            let tex = Mutex()
+            let tex = Lock()
             var total = 0
             for _ in 0..<performanceTestIterations {
                 tex.lock()
@@ -145,7 +145,7 @@ class MutexTests: XCTestCase {
 
     func testLockAndUnlockWithTimeoutPerformance() {
         measure {
-            let tex = Mutex()
+            let tex = Lock()
             var total = 0
             for _ in 0..<performanceTestIterations {
                 try? tex.lock(timeout: 1)

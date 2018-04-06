@@ -1,10 +1,8 @@
-import Foundation
-
-public func schedule(using worker: Worker = asyncWorker, toPerform task: @escaping () -> Void) -> Void {
-    worker.schedule(task)
+public func schedule(in context: ExecutionContext = .async(using: asyncWorker), toPerform task: @escaping () -> Void) -> Void {
+    context.execute(task)
 }
 
 @discardableResult
-public func schedule(using worker: Worker = asyncWorker, toPerform task: @escaping () throws -> Void) -> Catchable {
-    return worker.schedule(task)
+public func schedule(in context: ExecutionContext = .async(using: asyncWorker), toPerform task: @escaping () throws -> Void) -> Catchable {
+    return context.execute(task)
 }
