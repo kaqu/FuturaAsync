@@ -4,7 +4,7 @@
 [![codebeat badge](https://codebeat.co/badges/4192d0ed-2655-40c0-9b88-43253d7fb992)](https://codebeat.co/projects/github-com-kaqu-futuraasync-master)
 [![codecov](https://codecov.io/gh/kaqu/FuturaAsync/branch/master/graph/badge.svg)](https://codecov.io/gh/kaqu/FuturaAsync)
 [![Swift Package Manager compatible](https://img.shields.io/badge/Swift%20Package%20Manager-compatible-brightgreen.svg)](https://github.com/apple/swift-package-manager)
-[![SwiftVersion](https://img.shields.io/badge/Swift-4.0-brightgreen.svg)]()
+[![SwiftVersion](https://img.shields.io/badge/Swift-4.1-brightgreen.svg)]()
 [![Contact](https://img.shields.io/badge/contact-@kaqukal-blue.svg?style=flat)](https://twitter.com/kaqukal)
 
 
