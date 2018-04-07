@@ -14,11 +14,11 @@ public extension Promise {
         }
     }
     
-    func fulfill<T>(with value: T) where Value == Result<T> {
+    public func fulfill<T>(with value: T) where Value == Result<T> {
         future.succeed(with: value)
     }
     
-    func `break`<T>(with error: Error = PromiseError.cancelled) where Value == Result<T> {
+    public func `break`<T>(with error: Error = PromiseError.cancelled) where Value == Result<T> {
         future.fail(with: error)
     }
 }
