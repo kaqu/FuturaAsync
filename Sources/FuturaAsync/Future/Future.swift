@@ -12,6 +12,13 @@ public final class Future<Expectation> {
     public init(with expectation: Expectation) {
         self.expectation = expectation
     }
+    
+    deinit {
+        #if DEBUG
+        guard case .none = expectation else { return }
+        print("WARNING - dealocating not completed future! - \(self)")
+        #endif
+    }
 }
 
 public extension Future {

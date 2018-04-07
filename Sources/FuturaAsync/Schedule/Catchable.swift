@@ -13,4 +13,6 @@ public final class Catchable {
     internal func close() {
         future.succeed(with: Void())
     }
+    
+    deinit { close() }
 }
