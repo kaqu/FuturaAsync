@@ -2,7 +2,7 @@ public typealias Promise<T> = Delayed<Result<T>>
 
 public extension Promise {
     
-    public convenience init<T>(using worker: Worker = asyncWorker, withTriesCount retryCount: UInt = 0, performing task: @escaping () throws -> (T))  where Value == Result<T> {
+    public convenience init<T>(using worker: Worker = asyncWorker, withRetriesCount retryCount: UInt = 0, performing task: @escaping () throws -> (T))  where Value == Result<T> {
         self.init()
         var lastError: Error?
         worker.schedule {
@@ -10,7 +10,7 @@ public extension Promise {
                 do { return try self.fulfill(with: task()) } catch { lastError = error }
             }
             guard let lastError = lastError else { return }
-            self.break(with:lastError)
+            self.break(with: lastError)
         }
     }
     

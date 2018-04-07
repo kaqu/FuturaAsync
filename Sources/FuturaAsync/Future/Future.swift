@@ -46,7 +46,7 @@ public extension Future {
     func map<Transformed>(to: Transformed.Type, in context: ExecutionContext = .inherit, _ transformation: @escaping (Expectation) throws -> (Transformed)) -> Future<Transformed> {
         let mapped = Future<Transformed>()
         then(in: context) { value in
-            try? mapped.become(with: transformation(value))
+            try? mapped.become(transformation(value))
         }
         return mapped
     }
@@ -54,7 +54,7 @@ public extension Future {
 
 internal extension Future {
     
-    func become(with value: Expectation) {
+    func become(_ value: Expectation) {
         lock.synchronized {
             switch expectation {
             case .some:

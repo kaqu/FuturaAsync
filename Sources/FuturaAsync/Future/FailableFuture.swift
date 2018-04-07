@@ -8,23 +8,23 @@ public extension FailableFuture {
     }
     
     @discardableResult
-    func thenValue<T>(in context: ExecutionContext = .async(using: defaultWorker), perform block: @escaping (T) -> ()) -> Self  where Expectation == Result<T> {
+    func thenSuccess<T>(in context: ExecutionContext = .async(using: defaultWorker), perform block: @escaping (T) -> ()) -> Self  where Expectation == Result<T> {
         let handlerClosure: (Result<T>)->() = {
             switch $0 {
-            case let .value(value):
+            case let .success(value):
                 block(value)
-            case .error: break
+            case .failure: break
             }
         }
         return then(use: FailableFuture.Handler(context: context, handler: handlerClosure))
     }
     
     @discardableResult
-    func `catch`<T>(in context: ExecutionContext = .async(using: defaultWorker), perform block: @escaping (Error) -> ()) -> Self where Expectation == Result<T> {
+    func thenFailure<T>(in context: ExecutionContext = .async(using: defaultWorker), perform block: @escaping (Error) -> ()) -> Self where Expectation == Result<T> {
         let handlerClosure: (Result<T>)->() = {
             switch $0 {
-            case .value: break
-            case let .error(error):
+            case .success: break
+            case let .failure(error):
                 block(error)
             }
         }
@@ -43,7 +43,7 @@ public extension FailableFuture {
         return mapped
     }
     
-    func recover<T>(in context: ExecutionContext = .inherit, _ recovery: @escaping (Error) throws -> (T)) -> FailableFuture<T> where Expectation == Result<T> {
+    func recoverable<T>(in context: ExecutionContext = .inherit, using recovery: @escaping (Error) throws -> (T)) -> FailableFuture<T> where Expectation == Result<T> {
         let recoverable = FailableFuture<T>()
         then(in: context) { value in
             do {
@@ -63,10 +63,10 @@ public extension FailableFuture {
 internal extension FailableFuture {
     
     func succeed<T>(with value: T) where Expectation == Result<T> {
-        become(with: Expectation.value(value))
+        become(Expectation.success(value))
     }
     
     func fail<T>(with error: Error) where Expectation == Result<T> {
-        become(with: Expectation.error(error))
+        become(Expectation.failure(error))
     }
 }

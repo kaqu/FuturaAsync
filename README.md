@@ -16,7 +16,7 @@ Provides promise implementation for iOS, macOS and Linux.
 Use via Swift Package Manager
 
 ``` swift
-.package(url: "https://github.com/kaqu/FuturaAsync.git", from: "1.0.0"),
+.package(url: "https://github.com/kaqu/FuturaAsync.git", from: "0.9.0"),
 ```
 
 Sample usage
@@ -25,32 +25,32 @@ Sample usage
 let promise = Promise<Int>()
 let future = promise.future
 future
-    .thenValue {
+    .thenSuccess {
         print("Success: \($0)")
     }
-    .thenError {
+    .thenFailure {
         print("Error: \($0)")
     }
     .mapValue {
         return String($0)
     }
-    .thenValue {
+    .thenSuccess {
         print("Success(mapped): \($0)")
     }
-    .thenError {
+    .thenFailure {
         print("Error(mapped): \($0)")
     }
-    .recover { err in
+    .recoverable { err in
         if (err as? String) == "recoverable" {
             return "Recovery!"
         } else {
             throw err
         }
     }
-    .thenValue {
+    .thenSuccess {
         print("Success(mapped, recoverable): \($0)")
     }
-    .thenError {
+    .thenFailure {
         print("Error(mapped, recoverable): \($0)")
     }
     .map {
@@ -74,7 +74,7 @@ promise.fulfill(with: 9)
 
 prints
 
-``` swift
+```
 Success: 9
 Success(mapped): 9
 Success(mapped, recoverable): 9
@@ -89,7 +89,7 @@ promise.break() // cancel
 
 prints
 
-``` swift
+```
 Error: cancelled
 Error(mapped): cancelled
 Error(mapped, recoverable): cancelled
@@ -104,7 +104,7 @@ promise.break(with: "recoverable" as Error)
 
 prints
 
-``` swift
+```
 Error: recoverable
 Error(mapped): recoverable
 Success(mapped, recoverable): Recovery!

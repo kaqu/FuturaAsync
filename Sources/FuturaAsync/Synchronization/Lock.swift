@@ -26,7 +26,7 @@ fileprivate let mSecSec: __darwin_time_t = 1_000 * nSecMsec
 
 
 public final class Lock : LockProtocol {
-    public let mtx = UnsafeMutablePointer<pthread_mutex_t>.allocate(capacity: 1)
+    private let mtx = UnsafeMutablePointer<pthread_mutex_t>.allocate(capacity: 1)
 
     public init() {
         let attr = UnsafeMutablePointer<pthread_mutexattr_t>.allocate(capacity: 1)
@@ -50,7 +50,6 @@ public final class Lock : LockProtocol {
         mtx.deallocate()
     }
     
-    @inline(__always)
     public func lock() -> Void {
         pthread_mutex_lock(mtx)
     }
