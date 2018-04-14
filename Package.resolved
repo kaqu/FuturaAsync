@@ -1,7 +1,15 @@
 {
   "object": {
     "pins": [
-
+      {
+        "package": "FuturaFunc",
+        "repositoryURL": "https://github.com/kaqu/FuturaFunc.git",
+        "state": {
+          "branch": "master",
+          "revision": "aae29840214808d92d40803cc6bdb58bf0abb3aa",
+          "version": null
+        }
+      }
     ]
   },
   "version": 1

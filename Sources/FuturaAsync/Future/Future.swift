@@ -1,16 +1,14 @@
-public final class Future<Expectation> {
-    public typealias Handler = FutureHandler<Expectation>
+public final class Future<Value> {
+    public typealias Handler = (Value) -> Void
     
     private let lock: Lock = Lock()
+    private let executionContext: ExecutionContext
     private var handlers: [Handler] = []
-    private var expectation: Expectation?
-    
-    public init() {
-        self.expectation = nil
-    }
-    
-    public init(with expectation: Expectation) {
-        self.expectation = expectation
+    private var value: Value?
+
+    public init(with value: Value? = nil, executionContext: ExecutionContext = .async(using: defaultWorker)) {
+        self.executionContext = executionContext
+        self.value = value
     }
     
     deinit {
@@ -23,26 +21,12 @@ public final class Future<Expectation> {
 
 public extension Future {
     
-    func examine() -> Expectation? {
-        return lock.synchronized { expectation }
-    }
-    
     @discardableResult
-    func after(in context: ExecutionContext = .async(using: defaultWorker), perform block: @escaping () -> ()) -> Self {
-        return then(use: Future.Handler(context: context, handler: { _ in block() }))
-    }
-    
-    @discardableResult
-    func then(in context: ExecutionContext = .async(using: defaultWorker), perform block: @escaping (Expectation) -> ()) -> Self {
-        return then(use: Future.Handler(context: context, handler: block))
-    }
-    
-    @discardableResult
-    func then(use handler: Handler) -> Self {
+    func then(_ handler: @escaping (Value) -> ()) -> Self {
         lock.synchronized {
-            switch expectation {
+            switch value {
             case let .some(result):
-                handler.trigger(with: result)
+                executionContext.execute { handler(result) }
             case .none:
                 handlers.append(handler)
             }
@@ -50,27 +34,62 @@ public extension Future {
         return self
     }
     
-    func map<Transformed>(to: Transformed.Type, in context: ExecutionContext = .inherit, _ transformation: @escaping (Expectation) throws -> (Transformed)) -> Future<Transformed> {
+    func then( _ handler: @escaping (Value) -> (Value)) -> Future<Value> {
+        let next = Future<Value>()
+        then { value in
+            next.become(handler(value))
+        }
+        return next
+    }
+    
+    func map<Transformed>(to: Transformed.Type, _ transformation: @escaping (Value) -> (Transformed)) -> Future<Transformed> {
         let mapped = Future<Transformed>()
-        then(in: context) { value in
-            try? mapped.become(transformation(value))
+        then { value in
+            mapped.become(transformation(value))
         }
         return mapped
+    }
+    
+    @discardableResult
+    func after(_ handler: @escaping () -> ()) -> Self {
+        return then { _ in handler() }
+    }
+    
+    func using(context: ExecutionContext) -> Future<Value> {
+        let fut = Future(executionContext: context)
+        then { fut.become($0) }
+        return fut
+    }
+    
+    @discardableResult
+    func keep() -> Self {
+        return after { _ = self }
     }
 }
 
 internal extension Future {
     
-    func become(_ value: Expectation) {
+    func become(_ value: Value) {
         lock.synchronized {
-            switch expectation {
+            switch self.value {
             case .some:
                 return
             case .none:
-                expectation = value
-                handlers.forEach { $0.trigger(with: value) }
-                handlers = []
+                self.value = value
+                executionContext.execute {
+                    self.handlers.forEach { $0(value) }
+                    self.handlers = []
+                }
+                
             }
         }
     }
+}
+
+public func future<T>(using worker: Worker, _ task: @escaping () -> T) -> Future<T> {
+    let future = Future<T>()
+    worker.schedule {
+        future.become(task())
+    }
+    return future
 }

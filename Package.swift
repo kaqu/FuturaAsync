@@ -9,13 +9,15 @@ let package = Package(
             name: "FuturaAsync",
             targets: ["FuturaAsync"]),
     ],
-    dependencies: [],
+    dependencies: [
+        .package(url: "https://github.com/kaqu/FuturaFunc.git", .branch("master")),
+    ],
     targets: [
         .target(
             name: "FuturaAsync",
-            dependencies: []),
+            dependencies: ["FuturaFunc"]),
         .testTarget(
             name: "FuturaAsyncTests",
-            dependencies: ["FuturaAsync"]),
+            dependencies: ["FuturaFunc", "FuturaAsync"]),
     ]
 )

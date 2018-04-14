@@ -1,8 +1,10 @@
-public typealias Promise<T> = Delayed<Result<T>>
+import FuturaFunc
+
+public typealias Promise<T> = Delayed<Either<T, Error>>
 
 public extension Promise {
     
-    public convenience init<T>(using worker: Worker = asyncWorker, withRetriesCount retryCount: UInt = 0, performing task: @escaping () throws -> (T))  where Value == Result<T> {
+    public convenience init<T>(using worker: Worker = asyncWorker, withRetriesCount retryCount: UInt = 0, performing task: @escaping () throws -> (T))  where Value == Either<T, Error> {
         self.init()
         var lastError: Error?
         worker.schedule {
@@ -14,11 +16,15 @@ public extension Promise {
         }
     }
     
-    public func fulfill<T>(with value: T) where Value == Result<T> {
-        future.succeed(with: value)
+    public func fulfill<T>(with value: T) where Value == Either<T, Error> {
+        future.becomeLeft(with: value)
     }
     
-    public func `break`<T>(with error: Error = PromiseError.cancelled) where Value == Result<T> {
-        future.fail(with: error)
+    public func `break`<T>(with error: Error = PromiseError.cancelled) where Value == Either<T, Error> {
+        future.becomeRight(with: error)
     }
+}
+
+public enum PromiseError : Error {
+    case cancelled
 }

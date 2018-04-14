@@ -1,17 +1,17 @@
 public final class Catchable {
     
-    private let future: FailableFuture<Void> = Future()
+    private let future: EitherFuture<Error, Void> = Future()
     
     public func `catch`(_ handler: @escaping (Error) -> Void) -> Void {
-        future.thenFailure(perform: handler)
+        future.thenLeft(handler)
     }
     
     internal func handle(error: Error) {
-        future.fail(with: error)
+        future.becomeLeft(with: error)
     }
     
     internal func close() {
-        future.succeed(with: Void())
+        future.becomeRight(with: Void())
     }
     
     deinit { close() }
